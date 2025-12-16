@@ -1,0 +1,82 @@
+name: Build, Push, and Deploy via SSH (to portainer)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SSH_PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set lowercase repo name for tags and paths
+        shell: bash
+        run: |
+          echo "REPO_NAME_LOWER=$(basename "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image (with verbose logs)
+        uses: docker/build-push-action@v5
+        env:
+          BUILDKIT_PROGRESS: plain
+        with:
+          push: true
+          provenance: false
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:${{ github.sha }}
+
+      - name: Show whether SSH_PASSPHRASE is present (masked)
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "${{ secrets.SSH_PASSPHRASE }}" ]; then
+            echo "SSH_PASSPHRASE is set"
+          else
+            echo "SSH_PASSPHRASE is NOT set"
+          fi
+
+      - name: Deploy to VPS via SSH (with passphrase)
+        if: ${{ env.SSH_PASSPHRASE != '' }}
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            set -e
+            cd /home/deploy/${{ github.event.repository.name }}
+            docker compose pull
+            docker compose up -d --remove-orphans
+            sleep 3
+            docker compose ps
+
+      - name: Deploy to VPS via SSH (no passphrase)
+        if: ${{ env.SSH_PASSPHRASE == '' }}
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            set -e
+            cd /home/deploy/${{ github.event.repository.name }}
+            docker compose pull
+            docker compose up -d --remove-orphans
+            sleep 3
+            docker compose ps
