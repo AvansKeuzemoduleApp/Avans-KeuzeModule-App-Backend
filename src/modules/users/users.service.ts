@@ -16,14 +16,24 @@ export class UsersService {
     }
 
 
-    async createUser(email: string, passwordHash: string){
-        const existing = await this.findByEmail(email);
+    async createIfNotExists(email: string, passwordHash: string): Promise<void> {
+        try {
+            const user = this.usersRepo.create({
+                email,
+                passwordHash,
+            });
+        
+            await this.usersRepo.insert(user);
+        }
 
-        if(existing)
-            throw new ConflictException('Email already in use');
+        
+        catch (e: any){
+            if (e?.code === 'ER_DUP_ENTRY') {
+                return;
+            }
 
-        const user = this.usersRepo.create({email, passwordHash});
-        return this.usersRepo.save(user);
+            throw e;
+        }
     }
 }
 
