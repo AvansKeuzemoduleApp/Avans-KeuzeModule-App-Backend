@@ -9,7 +9,7 @@ import { LoginDto } from './dto/login.dto';
 @Injectable()
 export class AuthService {
     // Dummy hash for timing-hardening when user does not exist.
-    private static readonly DUMMY_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO3XwWq2Ih2p9uWmZ.0J7Qb1g3iKQp5y2';
+    private static readonly DUMMY_HASH = process.env.DUMMY_HASH as string;
 
     constructor(
         private readonly usersService: UsersService,
