@@ -34,5 +34,6 @@ import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
 ],
     controllers: [AuthController],
     providers: [AuthService, RefreshTokensService, JwtCookieAuthGuard],
+    exports: [JwtCookieAuthGuard],
 })
 export class AuthModule {}

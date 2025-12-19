@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto'
 import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
+import { Public } from '../auth/guards/public.decorator';
 
 type RequestWithCookies = Request & { cookies?: Record<string, string>; user?: any };
 
@@ -11,6 +12,7 @@ type RequestWithCookies = Request & { cookies?: Record<string, string>; user?: a
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
+    @Public()
     @Post('register')
     @HttpCode(200)
     async register(@Body() dto: RegisterDto) {
@@ -18,6 +20,7 @@ export class AuthController {
         return { message: 'If registration is possible, the account will be created.' };
     }
 
+    @Public()
     @Post('login')
     @HttpCode(200)
     async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
@@ -64,7 +67,7 @@ export class AuthController {
         return { message: 'Logged out' };
     }
 
-
+    @Public()
     @Post('refresh')
     @HttpCode(200)
     async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response){
@@ -100,7 +103,6 @@ export class AuthController {
     }
 
     @Get('me')
-    @UseGuards(JwtCookieAuthGuard)
     me(@Req() req: RequestWithCookies) {
         return { user: req.user };
     }
