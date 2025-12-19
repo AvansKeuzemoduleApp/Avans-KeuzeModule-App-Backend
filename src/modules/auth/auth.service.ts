@@ -73,13 +73,13 @@ export class AuthService {
 
         await this.refreshTokens.delete(refreshToken);
 
-        const newRefeshToken = this.refreshTokens.generateToken();
+        const newRefreshToken = this.refreshTokens.generateToken();
         const refreshTtlSeconds = Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800);
         const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
-        await this.refreshTokens.create(user.id, newRefeshToken, expiresAt);
+        await this.refreshTokens.create(user.id, newRefreshToken, expiresAt);
 
         const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
 
-        return { accessToken, refreshToken: newRefeshToken };
+        return { accessToken, refreshToken: newRefreshToken };
     }
 }

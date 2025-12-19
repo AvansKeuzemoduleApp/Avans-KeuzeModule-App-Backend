@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Res, Req, UseGuards, Get } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res, Req, UseGuards, Get, UnauthorizedException } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -76,7 +76,7 @@ export class AuthController {
 
         const oldRefresh = req.cookies?.[refreshName];
         if (!oldRefresh)
-            return { message: 'No refresh token' };
+            throw new UnauthorizedException('Invalid Credentials');
 
         const { accessToken, refreshToken } = await this.authService.refresh(oldRefresh);
 
@@ -85,7 +85,7 @@ export class AuthController {
             secure,
             sameSite,
             path: '/',
-            maxAge: Number(process.env.ACCESS_TOKEN_EXPIRES_IN_SECODS ?? 900) * 1000,
+            maxAge: Number(process.env.ACCESS_TOKEN_EXPIRES_IN_SECONDS ?? 900) * 1000,
         });
 
         res.cookie(refreshName, refreshToken, {

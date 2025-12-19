@@ -18,7 +18,7 @@ export class JwtCookieAuthGuard implements CanActivate {
             throw new UnauthorizedException('Unauthorized');
 
         try {
-            const payload = await this.jwt.verifyAsync(token);
+            const payload = await this.jwt.verifyAsync(token, { secret: process.env.JWT_SECRET });
             req.user = payload;
             return true;
         } catch {
