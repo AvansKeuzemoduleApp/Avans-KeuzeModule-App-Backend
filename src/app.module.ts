@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
-import { APP_GUARD } from '@nestjs/core'
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
     imports: [

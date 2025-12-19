@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto'
 import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
-import { Public } from '../auth/guards/public.decorator';
+import { Public } from './guards/public.decorator';
 
 type RequestWithCookies = Request & { cookies?: Record<string, string>; user?: any };
 

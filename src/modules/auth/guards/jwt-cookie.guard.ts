@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from "@nestjs/core";
-import { IS_PUBLIC_KEY } from '../guards/public.decorator';
+import { IS_PUBLIC_KEY } from './public.decorator';
 
 type RequestWithCookies = Request & { cookies?: Record<string, string>; user?: any };
 
