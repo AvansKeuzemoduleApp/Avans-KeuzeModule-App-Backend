@@ -11,7 +11,7 @@ export class LoginDto {
         @MinLength(12)
         @MaxLength(128)
         @Matches(
-            /^(?=\S{12,128}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).*$/,{
+            /^(?=.{12,128}$)(?!.*\s)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).*$/,{
                 message: 'Password must be 12+ characters, include uppercase, lowercase, a number, and a symbol'
             }
         )
