@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
     imports: [
@@ -23,6 +25,12 @@ import { UsersModule } from './modules/users/users.module';
 
         UsersModule,
         AuthModule
+    ],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: JwtCookieAuthGuard,
+        },
     ],
 })
 
