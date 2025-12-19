@@ -6,6 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ProfileModule } from './modules/profile/profile.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
     imports: [
@@ -23,7 +24,7 @@ import { ProfileModule } from './modules/profile/profile.module';
             //TODO (REMOVE THIS DEV OPTION)
             synchronize: process.env.DB_SYNCHRONIZE === 'true'
         }),
-
+        JwtModule,
         UsersModule,
         AuthModule,
         ProfileModule
