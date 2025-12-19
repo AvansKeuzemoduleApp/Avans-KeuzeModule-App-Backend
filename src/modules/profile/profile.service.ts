@@ -98,21 +98,6 @@ export class ProfileService {
             throw new NotFoundException('Student profile not found');
         }
 
-        if (dto.interests !== undefined) {
-            profile.interests = dto.interests || undefined;
-        }
-        if (dto.merits !== undefined) {
-            profile.merits = dto.merits || undefined;
-        }
-        if (dto.goals !== undefined) {
-            profile.goals = dto.goals || undefined;
-        }
-        if (dto.preferred_location !== undefined) {
-            profile.preferredLocation = dto.preferred_location || undefined;
-        }
-        if (dto.preferred_studycredits !== undefined) {
-            profile.preferredStudycredits = dto.preferred_studycredits || undefined;
-        }
         this.logger.log(`Updated student profile for user ${userId}`);
 
         await this.studentProfileRepo.save(profile);
