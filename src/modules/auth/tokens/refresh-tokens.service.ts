@@ -60,11 +60,18 @@ export class RefreshTokensService {
     }
 
     async revokeAllForUser(userId: string): Promise<void> {
-        await this.repo.update({ userId }, { revokedAt: new Date() });
+        const result = await this.repo.update({ userId, }, { revokedAt: new Date() });
+        if (!result.affected) {
+            throw new Error ('Refresh token not found or already revoked');
+        }
     }
 
     async delete(token: string): Promise<void> {
         const tokenHash = this.hashToken(token);
-        await this.repo.delete({ tokenHash });
+        
+        const result = await this.repo.delete({ tokenHash });
+        if (!result.affected) {
+            throw new Error('Refresh token not found');
+        }
     }
 }
