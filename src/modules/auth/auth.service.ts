@@ -11,7 +11,7 @@ import { RefreshTokensService } from './tokens/refresh-tokens.service';
 @Injectable()
 export class AuthService {
     private readonly dummyHash: string;
-    private readonly logger = new Logger(ProfileService.name);
+    private readonly logger = new Logger(AuthService.name);
 
     constructor(
         private readonly usersService: UsersService,
