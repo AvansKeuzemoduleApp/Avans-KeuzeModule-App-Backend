@@ -11,6 +11,8 @@ import { RefreshToken } from './tokens/refresh-token.entity';
 import { RefreshTokensService } from './tokens/refresh-tokens.service';
 import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
 
+import { LoginProtectionService } from './login-protection/login-protection.service';
+
 @Module({
     imports: [
     UsersModule,
@@ -33,7 +35,7 @@ import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
     })
 ],
     controllers: [AuthController],
-    providers: [AuthService, RefreshTokensService, JwtCookieAuthGuard],
+    providers: [AuthService, RefreshTokensService, JwtCookieAuthGuard, LoginProtectionService],
     exports: [JwtCookieAuthGuard],
 })
 export class AuthModule {}

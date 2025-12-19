@@ -5,12 +5,18 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto'
 import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
 import { Public } from './guards/public.decorator';
+import { Throttle } from '@nestjs/throttler';
+import { LoginProtectionService } from './login-protection/login-protection.service';
 
 type RequestWithCookies = Request & { cookies?: Record<string, string>; user?: any };
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly loginProtection: LoginProtectionService,
+
+    ) {}
 
     @Public()
     @Post('register')
@@ -21,34 +27,51 @@ export class AuthController {
     }
 
     @Public()
+    @Throttle({ default: { limit: 5, ttl: 60 } })
     @Post('login')
     @HttpCode(200)
-    async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-        const {accessToken, refreshToken} = await this.authService.login(dto);
+    async login(
+        @Body() dto: LoginDto,
+        @Req() req: RequestWithCookies,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const ip = req.ip ?? 'unknown';
+        const { key, backoffMs } = this.loginProtection.check(ip);
 
-        const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
-        const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
+        try {
+            const { accessToken, refreshToken } = await this.authService.login(dto);
+            this.loginProtection.recordSuccess(key);
 
-        const secure = (process.env.COOKIE_SECURE) === 'true';
-        const sameSite = (process.env.COOKIE_SAMESITE) as 'lax' | 'strict' | 'none';
+            const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
+            const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
-        res.cookie(accessName, accessToken, {
-            httpOnly: true,
-            secure,
-            sameSite,
-            path: '/',
-            maxAge: Number(process.env.ACCESS_TOKEN_EXPIRES_IN_SECONDS ?? 900) * 1000,
-        });
+            const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
+            const sameSite = (process.env.COOKIE_SAMESITE ?? 'lax') as 'lax' | 'strict' | 'none';
 
-        res.cookie(refreshName, refreshToken, {
-            httpOnly: true,
-            secure,
-            sameSite,
-            path: '/auth',
-            maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
-        });
+            res.cookie(accessName, accessToken, {
+                httpOnly: true,
+                secure,
+                sameSite,
+                path: '/',
+                maxAge: Number(process.env.ACCESS_TOKEN_EXPIRES_IN_SECONDS ?? 900) * 1000,
+            });
+
+            res.cookie(refreshName, refreshToken, {
+                httpOnly: true,
+                secure,
+                sameSite,
+                path: '/auth',
+                maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
+            });
 
         return { message: 'Logged in' };
+        } catch (e) {
+            if (e instanceof UnauthorizedException) {
+                this.loginProtection.recordFailure(key);
+                await this.loginProtection.sleep(backoffMs);
+            }
+        throw e;
+        }
     }
 
     @Post('logout')
