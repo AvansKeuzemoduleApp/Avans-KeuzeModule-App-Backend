@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Req } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Req, UnauthorizedException } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
 
@@ -10,8 +10,10 @@ export class ProfileController {
 
     @Get()
     async getStudentProfile(@Req() req: RequestWithUser) {
-        const userId = req.user?.sub;
-        return this.profileService.getOrCreateStudentProfile(userId!);
+        if (!req.user?.sub) {
+            throw new UnauthorizedException('User not authenticated');
+        }
+        return this.profileService.getOrCreateStudentProfile(req.user.sub);
     }
 
     @Patch()
@@ -19,7 +21,9 @@ export class ProfileController {
         @Req() req: RequestWithUser,
         @Body() dto: UpdateStudentProfileDto,
     ) {
-        const userId = req.user?.sub;
-        return this.profileService.updateStudentProfile(userId!, dto);
+        if (!req.user?.sub) {
+            throw new UnauthorizedException('User not authenticated');
+        }
+        return this.profileService.updateStudentProfile(req.user.sub, dto);
     }
 }

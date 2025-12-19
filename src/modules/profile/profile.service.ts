@@ -92,7 +92,7 @@ export class ProfileService {
 
         await this.studentProfileRepo.save(profile);
 
-        const response: any = {
+        const response = {
             // id: profile.id,
             // created_at: profile.createdAt,
             // updated_at: profile.updatedAt,
