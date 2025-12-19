@@ -8,31 +8,32 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly usersRepo: Repository<User>,
-    ) {}
+    ) { }
 
 
     findByEmail(email: string) {
-        return this.usersRepo.findOne({where: {email}});
+        return this.usersRepo.findOne({ where: { email } });
     }
 
     findById(id: string) {
         return this.usersRepo.findOne({ where: { id } });
     }
 
-    async createIfNotExists(email: string, passwordHash: string): Promise<void> {
+    async createIfNotExists(email: string, passwordHash: string): Promise<User | null> {
         try {
             const user = this.usersRepo.create({
                 email,
                 passwordHash,
             });
-        
+
             await this.usersRepo.insert(user);
+            return user;
         }
 
-        
-        catch (e: any){
+
+        catch (e: any) {
             if (e?.code === 'ER_DUP_ENTRY') {
-                return;
+                return null;
             }
 
             throw e;
