@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudentProfile } from './student-profile.entity';
+import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
 
 @Injectable()
 export class ProfileService {
@@ -11,6 +12,15 @@ export class ProfileService {
         @InjectRepository(StudentProfile)
         private readonly studentProfileRepo: Repository<StudentProfile>,
     ) { }
+
+    /**
+     * Helper function to convert undefined to null
+     * 
+     * Cause the PATCH had funky returns
+     */
+    private undefinedToNull<T>(value: T | undefined | null): T | null {
+        return value === undefined ? null : value;
+    }
 
     /**
      * Make sure a student profile exists for the given user.
@@ -64,11 +74,60 @@ export class ProfileService {
 
         return {
             // id: profile.id,
-            interests: profile.interests,
-            merits: profile.merits,
-            goals: profile.goals,
-            preferred_location: profile.preferredLocation,
-            preferred_studycredits: profile.preferredStudycredits
+            interests: this.undefinedToNull(profile.interests),
+            merits: this.undefinedToNull(profile.merits),
+            goals: this.undefinedToNull(profile.goals),
+            preferred_location: this.undefinedToNull(profile.preferredLocation),
+            preferred_studycredits: this.undefinedToNull(profile.preferredStudycredits)
         };
+    }
+
+    /**
+     * Updates a student profile
+     */
+    async updateStudentProfile(userId: string, dto: UpdateStudentProfileDto) {
+        await this.ensureStudentProfileExists(userId); // fallback
+
+        const profile = await this.studentProfileRepo.findOne({
+            where: { userId },
+            relations: ['user'],
+        });
+
+        if (!profile) {
+            // this should be impossible, but for safety sake :3
+            throw new NotFoundException('Student profile not found');
+        }
+
+        if (dto.interests !== undefined) {
+            profile.interests = dto.interests || undefined;
+        }
+        if (dto.merits !== undefined) {
+            profile.merits = dto.merits || undefined;
+        }
+        if (dto.goals !== undefined) {
+            profile.goals = dto.goals || undefined;
+        }
+        if (dto.preferred_location !== undefined) {
+            profile.preferredLocation = dto.preferred_location || undefined;
+        }
+        if (dto.preferred_studycredits !== undefined) {
+            profile.preferredStudycredits = dto.preferred_studycredits || undefined;
+        }
+        this.logger.log(`Updated student profile for user ${userId}`);
+
+        await this.studentProfileRepo.save(profile);
+
+        const response: any = {
+            // id: profile.id,
+            // created_at: profile.createdAt,
+            // updated_at: profile.updatedAt,
+            interests: this.undefinedToNull(profile.interests),
+            merits: this.undefinedToNull(profile.merits),
+            goals: this.undefinedToNull(profile.goals),
+            preferred_location: this.undefinedToNull(profile.preferredLocation),
+            preferred_studycredits: this.undefinedToNull(profile.preferredStudycredits),
+        };
+
+        return response;
     }
 }
