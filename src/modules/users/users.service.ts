@@ -15,6 +15,9 @@ export class UsersService {
         return this.usersRepo.findOne({where: {email}});
     }
 
+    findById(id: string) {
+        return this.usersRepo.findOne({ where: { id } });
+    }
 
     async createIfNotExists(email: string, passwordHash: string): Promise<void> {
         try {

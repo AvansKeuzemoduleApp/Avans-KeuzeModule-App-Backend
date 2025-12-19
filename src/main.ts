@@ -8,6 +8,15 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  const corsOrigins =
+    process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim().length > 0 ? 
+      process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean) : ['http://localhost:5173'];
+
+  app.enableCors({
+    origin: corsOrigins,
+    Credential: true,
+  })
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
