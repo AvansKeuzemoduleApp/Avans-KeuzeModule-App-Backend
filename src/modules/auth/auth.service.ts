@@ -60,4 +60,26 @@ export class AuthService {
         // Hard delete
         await this.refreshTokens.delete(refreshToken);
     }
+
+
+    async refresh(refreshToken: string): Promise<{ accessToken: string, refreshToken: string }> {
+        const rt = await this.refreshTokens.findValid(refreshToken);
+        if (!rt) 
+            throw new UnauthorizedException('Invalid Session');
+
+        const user = await this.usersService.findById(rt.userId);
+        if (!user)
+            throw new UnauthorizedException('Invalid Session');
+
+        await this.refreshTokens.delete(refreshToken);
+
+        const newRefeshToken = this.refreshTokens.generateToken();
+        const refreshTtlSeconds = Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800);
+        const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
+        await this.refreshTokens.create(user.id, newRefeshToken, expiresAt);
+
+        const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
+
+        return { accessToken, refreshToken: newRefeshToken };
+    }
 }
