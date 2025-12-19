@@ -20,7 +20,7 @@ export class AuthController {
     async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
         const {accessToken, refreshToken} = await this.authService.login(dto);
 
-        const accessName = process.env.AUTH_COOKIE_NAME ?? 'access_token';
+        const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
         const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
         const secure = (process.env.COOKIE_SECURE) === 'true';

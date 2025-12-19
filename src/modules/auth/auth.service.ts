@@ -45,7 +45,7 @@ export class AuthService {
         const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
 
         const refreshToken = this.refreshTokens.generateToken();
-        const refreshTtlSeconds = Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS)
+        const refreshTtlSeconds = Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800);
         const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
 
         await this.refreshTokens.create(user.id, refreshToken, expiresAt);
