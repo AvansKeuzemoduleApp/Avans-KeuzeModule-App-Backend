@@ -38,12 +38,7 @@ export class ProfileService {
 
             // Create profile if the user is new
             profile = this.studentProfileRepo.create({
-                userId,
-                interests: undefined,
-                merits: undefined,
-                goals: undefined,
-                preferredLocation: undefined,
-                preferredStudycredits: undefined,
+                userId
             });
             await this.studentProfileRepo.save(profile);
             this.logger.log(`Created student profile for user ${userId}`);
@@ -78,7 +73,7 @@ export class ProfileService {
             merits: this.undefinedToNull(profile.merits),
             goals: this.undefinedToNull(profile.goals),
             preferred_location: this.undefinedToNull(profile.preferredLocation),
-            preferred_studycredits: this.undefinedToNull(profile.preferredStudycredits)
+            preferred_studycredits: this.undefinedToNull(profile.preferredStudyCredits)
         };
     }
 
@@ -99,8 +94,8 @@ export class ProfileService {
             interests: this.undefinedToNull(profile.interests),
             merits: this.undefinedToNull(profile.merits),
             goals: this.undefinedToNull(profile.goals),
-            preferred_location: this.undefinedToNull(profile.preferredLocation),
-            preferred_studycredits: this.undefinedToNull(profile.preferredStudycredits),
+            preferredLocation: this.undefinedToNull(profile.preferredLocation),
+            preferredStudyCredits: this.undefinedToNull(profile.preferredStudyCredits),
         };
 
         return response;

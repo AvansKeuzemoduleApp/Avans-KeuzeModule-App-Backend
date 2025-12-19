@@ -25,8 +25,8 @@ export class StudentProfile {
     @Column({ name: 'preferred_location', nullable: true })
     preferredLocation?: string;
 
-    @Column({ name: 'preferred_studycredits', type: 'int', nullable: true })
-    preferredStudycredits?: number;
+    @Column({ name: 'preferred_study_credits', type: 'int', nullable: true })
+    preferredStudyCredits?: number;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;

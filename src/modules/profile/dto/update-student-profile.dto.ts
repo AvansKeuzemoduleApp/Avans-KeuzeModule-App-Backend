@@ -27,7 +27,7 @@ export class UpdateStudentProfileDto {
     preferred_location?: string | null;
 
     @IsOptional()
-    @IsInt({ message: 'Preferred studycredits must be an integer' })
-    @Min(1, { message: 'Preferred studycredits must be a positive integer' })
-    preferred_studycredits?: number | null;
+    @IsInt({ message: 'Preferred study credits must be an integer' })
+    @Min(1, { message: 'Preferred study credits must be a positive integer' })
+    preferred_study_credits?: number | null;
 }
