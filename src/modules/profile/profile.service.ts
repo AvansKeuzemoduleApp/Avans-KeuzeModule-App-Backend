@@ -86,17 +86,7 @@ export class ProfileService {
      * Updates a student profile
      */
     async updateStudentProfile(userId: string, dto: UpdateStudentProfileDto) {
-        await this.ensureStudentProfileExists(userId); // fallback
-
-        const profile = await this.studentProfileRepo.findOne({
-            where: { userId },
-            relations: ['user'],
-        });
-
-        if (!profile) {
-            // this should be impossible, but for safety sake :3
-            throw new NotFoundException('Student profile not found');
-        }
+        const profile = await this.ensureStudentProfileExists(userId); // fallback
 
         this.logger.log(`Updated student profile for user ${userId}`);
 
