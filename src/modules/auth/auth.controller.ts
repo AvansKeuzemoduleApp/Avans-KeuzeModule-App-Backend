@@ -1,9 +1,8 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import { Body, Controller, HttpCode, Post, Res, Req } from '@nestjs/common';
+import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto'
-import { access } from 'fs';
 
 @Controller('auth')
 export class AuthController {
@@ -52,7 +51,7 @@ export class AuthController {
         const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
         const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
-        const refreshToken = req.cookies?.[refreshName] as string | undefined;
+        const refreshToken = req.cookies?.[refreshName];
 
         await this.authService.logout(refreshToken);
 

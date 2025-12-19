@@ -1,30 +1,28 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokensService } from './tokens/refresh-tokens.service';
-import { ref } from 'process';
-
 
 @Injectable()
 export class AuthService {
-    // Dummy hash for timing-hardening when user does not exist.
-    private static readonly DUMMY_HASH: string = (() => {
-        const v = process.env.DUMMY_HASH;
-        
-        if (!v)
-            throw new Error('DUMMY_HASH missing in environment');
-
-        return v;
-    })();
-
+    private readonly dummyHash: string;
+    
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
         private readonly refreshTokens: RefreshTokensService,
-    )   {}
+        private readonly config: ConfigService,
+    ) {
+        const v = this.config.get<string>('DUMMY_HASH');
+        if (!v)
+            throw new Error('DUMMY_HASH missing in environment');
+
+        this.dummyHash = v;
+    }
 
     async register(dto: RegisterDto): Promise<void> {
         const email = dto.email.trim().toLowerCase();
@@ -37,7 +35,7 @@ export class AuthService {
     async login (dto: LoginDto): Promise<{accessToken: string; refreshToken: string  }> {
         const user = await this.usersService.findByEmail(dto.email);
 
-        const hashToCheck = user?.passwordHash ?? AuthService.DUMMY_HASH;
+        const hashToCheck = user?.passwordHash ?? this.dummyHash;
         const ok = await bcrypt.compare(dto.password, hashToCheck);
 
         if (!user || !ok){
