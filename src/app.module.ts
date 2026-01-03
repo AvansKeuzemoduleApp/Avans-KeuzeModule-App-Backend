@@ -7,6 +7,7 @@ import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ProfileModule } from './modules/profile/profile.module';
 import { JwtModule } from '@nestjs/jwt';
+import { ModuleModule } from './modules/module/module.module';
 
 @Module({
     imports: [
@@ -27,7 +28,8 @@ import { JwtModule } from '@nestjs/jwt';
         JwtModule,
         UsersModule,
         AuthModule,
-        ProfileModule
+        ProfileModule,
+        ModuleModule
     ],
     providers: [
         {
