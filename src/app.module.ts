@@ -5,8 +5,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
 import { APP_GUARD } from '@nestjs/core';
-import { ProfileModule } from './modules/profile/profile.module';
-import { JwtModule } from '@nestjs/jwt';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ProfileModule } from './modules/proflie/profile.module';
 
 @Module({
     imports: [
@@ -24,16 +24,19 @@ import { JwtModule } from '@nestjs/jwt';
             //TODO (REMOVE THIS DEV OPTION)
             synchronize: process.env.DB_SYNCHRONIZE === 'true'
         }),
-        JwtModule,
+
+        ThrottlerModule.forRoot({
+            throttlers: [{ ttl: 60, limit: 100 }]
+        }),
+
         UsersModule,
         AuthModule,
         ProfileModule
     ],
+
     providers: [
-        {
-            provide: APP_GUARD,
-            useClass: JwtCookieAuthGuard,
-        },
+        { provide: APP_GUARD, useClass: ThrottlerGuard },
+        { provide: APP_GUARD, useClass: JwtCookieAuthGuard },
     ],
 })
 
