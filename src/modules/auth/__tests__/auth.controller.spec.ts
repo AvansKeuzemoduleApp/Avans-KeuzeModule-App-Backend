@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
-import { AuthController } from '../auth.controller'
+import { AuthController } from '../auth.controller';
 import { AuthService } from '../auth.service';
 import { LoginProtectionService } from '../login-protection/login-protection.service';
 import { JwtService } from '@nestjs/jwt';
@@ -102,7 +102,6 @@ describe('AuthController (Integration)', () => {
                     password: 'SecureP@ssw0rd!',
                 })
                 .expect(400);
-
                 expect(mockAuthService.register).not.toHaveBeenCalled();
             });
 

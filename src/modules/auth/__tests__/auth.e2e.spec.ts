@@ -236,7 +236,7 @@ describe('Auth E2E Tests', () => {
     });
 
     it('Should handle account enumeration protection', async () => {
-        //Register first user
+        // Register first user
         await request(app.getHttpServer())
             .post('/auth/register')
             .send({
@@ -356,7 +356,7 @@ describe('Auth E2E Tests', () => {
     });
 
     it.skip('Should record failures for all exception types (not just UnauthorizedException)', async () => {
-        //Test validation error
+        // Test validation error
         for (let i  = 0; i < 11; i++){
             await request(app.getHttpServer())
                 .post('/auth/login')

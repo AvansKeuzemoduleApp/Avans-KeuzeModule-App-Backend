@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoginProtectionService } from '../login-protection/login-protection.service'
+import { LoginProtectionService } from '../login-protection/login-protection.service';
 
 describe('LoginProtectionService', () => {
     let service: LoginProtectionService;
