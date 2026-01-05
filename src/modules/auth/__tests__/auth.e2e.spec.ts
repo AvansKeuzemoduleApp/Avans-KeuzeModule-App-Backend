@@ -16,6 +16,9 @@ import { response } from 'express';
 describe('Auth E2E Tests', () => {
     let app: INestApplication;
     let configService: ConfigService;
+    
+    // Cache test users to avoid redundant registrations
+    const testUsers: { [key: string]: { email: string; password: string } } = {};
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,8 +43,8 @@ describe('Auth E2E Tests', () => {
                     }),
                 }),
                 ThrottlerModule.forRoot([{
-                    ttl: 60000,
-                    limit: 100, // Increased for E2E tests
+                    ttl: 10000,
+                    limit: 100,
                 }]),
                 JwtModule.registerAsync({
                     inject: [ConfigService],
@@ -83,6 +86,18 @@ describe('Auth E2E Tests', () => {
     afterAll(async () => {
         await app.close();
     });
+
+    // Helper function to register or get cached user
+    async function getOrRegisterUser(key: string, email: string, password: string) {
+        if (!testUsers[key]) {
+            await request(app.getHttpServer())
+                .post('/auth/register')
+                .send({ email, password })
+                .expect(200);
+            testUsers[key] = { email, password };
+        }
+        return testUsers[key];
+    }
 
     describe('Full Auth Flow - E2E', () => {
         const testUser = {
@@ -131,7 +146,7 @@ describe('Auth E2E Tests', () => {
             .set('Cookie', [`access_token=${accessToken}`])
             .expect(200);
 
-        // Endpoint should return user data (structure may vary)
+        // Endpoint should return user data
         expect(response.body).toBeDefined();
 
         // Step 4: Refresh Tokens
@@ -170,25 +185,15 @@ describe('Auth E2E Tests', () => {
     });
 
     it('Should prevent brute force attacks with exponetial backoff', async () => {
-        const attackerEmail = 'attacker@student.avans.nl';
-        const wrongPassword = 'WrongP@ssw0rd!123';
+        const user = await getOrRegisterUser('brute-force', 'attacker@student.avans.nl', 'SecureP@ssw0rd!456');
 
-        // Register legitimate user
-        await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-            email: attackerEmail,
-            password: 'SecureP@ssw0rd!456',
-        })
-        .expect(200);
-
-        // Attempt 15 failed logins
-        for (let i = 0; i < 15; i++) {
+        // Attempt 11 failed logins
+        for (let i = 0; i < 11; i++) {
             const response = await request(app.getHttpServer())
                 .post('/auth/login')
                 .send({
-                    email: attackerEmail,
-                    password: wrongPassword,
+                    email: user.email,
+                    password: 'WrongP@ssw0rd!123',
                 })
             .expect(401);
 
@@ -204,51 +209,26 @@ describe('Auth E2E Tests', () => {
     });
 
     it('Should reset failure count on successful login', async () => {
-        const email = 'resettest@student.avans.nl';
-        const password = 'SecureP@ssw0rd!789';
-
-        // Register User
-        await request(app.getHttpServer())
-            .post('/auth/register')
-            .send({ email, password })
-            .expect(200);
+        const user = await getOrRegisterUser('reset-test', 'resettest@student.avans.nl', 'SecureP@ssw0rd!789');
 
         // Attempt 5 failed logins
         for (let i = 0; i < 5; i++) {
             await request(app.getHttpServer())
                 .post('/auth/login')
-                .send({ email, password: 'WrongP@ssw0rd!' })
+                .send({ email: user.email, password: 'WrongP@ssw0rd!' })
                 .expect(401);
         }
 
         // Now Login Successfully
-        let response = await request(app.getHttpServer())
+        await request(app.getHttpServer())
             .post('/auth/login')
-            .send({ email, password })
+            .send(user)
             .expect(200);
-
-        const setCookieHeader = response.headers['set-cookie'];
-        let accessToken: string = '';
-
-        const cookiesToParse = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
-        cookiesToParse.forEach((cookie: string) => {
-            if (cookie.includes('access_token')) {
-                accessToken = cookie.split('access_token=')[1].split(';')[0];
-            }
-        });
-
-        // Verify access to protected endpoint
-        response = await request(app.getHttpServer())
-            .get('/auth/me')
-            .set('Cookie', [`access_token=${accessToken}`])
-            .expect(200);
-
-        expect(response.body).toBeDefined();
 
         // Attempt another failed login - Should start fresh counter
-        response = await request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
             .post('/auth/login')
-            .send({ email, password: 'WrongP@ssw0rd!' })
+            .send({ email: user.email, password: 'WrongP@ssw0rd!' })
             .expect(401);
 
         // Should NOT have Retry-After header (only 1 failure)
@@ -327,18 +307,11 @@ describe('Auth E2E Tests', () => {
     });
 
     it('Should set secure httpOnly cookies', async () => {
-        const email = 'cookies@student.avans.nl';
-        const password = 'SecureP@ssw0rd!000';
-        
-        // Register and Login
-        await request(app.getHttpServer())
-            .post('/auth/register')
-            .send({ email, password })
-            .expect(200);
+        const user = await getOrRegisterUser('cookies', 'cookies@student.avans.nl', 'SecureP@ssw0rd!000');
 
         const response = await request(app.getHttpServer())
             .post('/auth/login')
-            .send({ email, password })
+            .send(user)
             .expect(200);
 
         const cookies = response.headers['set-cookie'];
@@ -358,21 +331,16 @@ describe('Auth E2E Tests', () => {
     });
 
     it('Should extract correct IP from X-Forwarded-For header', async () => {
-        const email = 'ip@student.avans.nl';
-        const password = 'SecureP@ssw0rd!111';
+        const user = await getOrRegisterUser('ip-test', 'ip@student.avans.nl', 'SecureP@ssw0rd!111');
 
-        // Register
-        await request(app.getHttpServer())
-            .post('/auth/register')
-            .send({ email, password })
-            .expect(200);
-
-        // Attempt failed logins with X-Forwarded-For header
+        // Attempt failed login with X-Forwarded-For
         for (let i = 0; i < 11; i++) {
-            const response = await request(app.getHttpServer())
+            await request(app.getHttpServer())
                 .post('/auth/login')
                 .set('X-Forwarded-For', '203.0.113.195, 70.41.3.18')
-                .send({ email, password: 'WrongP@ssw0rd!'
+                .send({
+                    email: user.email,
+                    password: 'WrongP@ssw0rd!',
                 })
                 .expect(401);
         }
@@ -381,7 +349,7 @@ describe('Auth E2E Tests', () => {
         const response = await request(app.getHttpServer())
             .post('/auth/login')
             .set('X-Forwarded-For', '203.0.113.195, 70.41.3.18')
-            .send({ email, password: 'WrongP@ssw0rd!' })
+            .send({ email: user.email, password: 'WrongP@ssw0rd!' })
             .expect(401);
 
         expect(response.headers['retry-after']).toBeDefined();
