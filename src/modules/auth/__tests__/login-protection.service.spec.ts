@@ -36,8 +36,8 @@ describe('LoginProtectionService', () => {
 
             const entry = service['attempts'].get(key);
             expect(entry).toBeDefined();
-            expect(entry.count).toBe(1);
-            expect(entry.firstFailAt).toBeLessThanOrEqual(Date.now());
+            expect(entry!.count).toBe(1);
+            expect(entry!.firstFailAt).toBeLessThanOrEqual(Date.now());
         });
 
         it('Should increment failure count', () => {
@@ -48,7 +48,7 @@ describe('LoginProtectionService', () => {
             service.recordFailure(key);
 
             const entry = service['attempts'].get(key);
-            expect(entry.count).toBe(3);
+            expect(entry!.count).toBe(3);
         });
 
         it('Should reset count after window expires', () => {
@@ -59,14 +59,16 @@ describe('LoginProtectionService', () => {
 
             // Simulate time passing
             const entry = service['attempts'].get(key);
-            entry.firstFailAt = Date.now() - (16 * 60 * 1000);
+            const oldFirstFailAt = Date.now() - (16 * 60 * 1000);
+            entry!.firstFailAt = oldFirstFailAt;
 
             // Record new failure - should reset count
             service.recordFailure(key);
 
             const updatedEntry = service['attempts'].get(key);
-            expect(updatedEntry.count).toBe(1);
-            expect(updatedEntry.firstFailtAt).toBeGreaterThan(entry.firstFailAt);
+            expect(updatedEntry).toBeDefined();
+            expect(updatedEntry!.count).toBe(1);
+            expect(updatedEntry!.firstFailAt).toBeGreaterThan(oldFirstFailAt);
         });
     });
 
