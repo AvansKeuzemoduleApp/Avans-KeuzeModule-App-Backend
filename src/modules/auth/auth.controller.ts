@@ -3,7 +3,6 @@ import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto'
-import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
 import { Public } from './guards/public.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { LoginProtectionService } from './login-protection/login-protection.service';
@@ -15,8 +14,17 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly loginProtection: LoginProtectionService,
+) {}
 
-    ) {}
+    private getClientIp(req: RequestWithCookies): string {
+        const forwardedFor = req.headers['x-forwarded-for'];
+        if (forwardedFor) {
+            const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+            return ips.split(',')[0].trim();
+        }
+
+        return req.ip || req.socket.remoteAddress || 'unknown';
+    }
 
     @Public()
     @Post('register')
@@ -35,7 +43,7 @@ export class AuthController {
         @Req() req: RequestWithCookies,
         @Res({ passthrough: true }) res: Response,
     ) {
-        const ip = req.ip ?? 'unknown';
+        const ip = this.getClientIp(req);
         const { key, backoffMs } = this.loginProtection.check(ip);
 
         try {
@@ -64,13 +72,17 @@ export class AuthController {
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
 
-        return { message: 'Logged in' };
+        return { message: 'Login Successful' };
         } catch (e) {
-            if (e instanceof UnauthorizedException) {
-                this.loginProtection.recordFailure(key);
-                await this.loginProtection.sleep(backoffMs);
+            this.loginProtection.recordFailure(key);
+
+            const backoffMs = this.loginProtection.getBackoff(key);
+
+            if (backoffMs > 0) {
+                res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
             }
-        throw e;
+            
+            throw e;
         }
     }
 

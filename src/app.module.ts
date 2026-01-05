@@ -6,7 +6,6 @@ import { UsersModule } from './modules/users/users.module';
 import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { JwtModule } from '@nestjs/jwt';
 
 @Module({
     imports: [
@@ -31,7 +30,6 @@ import { JwtModule } from '@nestjs/jwt';
 
         UsersModule,
         AuthModule,
-        JwtModule
     ],
 
     providers: [

@@ -1,74 +1,71 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 
 type Entry = {
-    fails: number;
+    count: number;
     firstFailAt: number;
-    lockUntil: number;
 };
-
 
 @Injectable()
 export class LoginProtectionService {
     private readonly attempts = new Map<string, Entry>();
-
-    private readonly windomMs = 15 * 60 * 1000;
+    private readonly windowMs = 15 * 60 * 1000;
     private readonly lockAfterFails = 10;
-    private readonly lockMs = 15 * 60 * 1000;
 
-    private makeKey(ip: string, email?: string) {
-        return ip;
+    makeKey(ip: string): string {
+        return `login_${ip}`;
     }
 
-    check(ip: string): { key: string; backoffMs: number} {
+    check(ip: string): { key: string; backoffMs: number } {
         const key = this.makeKey(ip);
-        const now = Date.now();
-        const entry = this.attempts.get(key);
-
-        if (!entry)
-            return { key, backoffMs: 0 };
-
-        // Window Expire -> Reset
-        if (now - entry.firstFailAt > this.windomMs) {
-            this.attempts.delete(key);
-            return { key, backoffMs: 0 };
-        }
-
-        // Locked
-        if (entry.lockUntil > now) {
-            throw new HttpException('Too many login attempts', HttpStatus.TOO_MANY_REQUESTS);
-        }
-
-        // Backoff Steps (ms)
-        const steps = [0, 200, 400, 800, 1600, 2000];
-        const backoffMs = steps[Math.min(entry.fails, steps.length - 1)];
-
+        const backoffMs = this.getBackoff(key);
         return { key, backoffMs };
     }
 
-    recordFailure(key: string) {
-        const now = Date.now();
-        const entry = this.attempts.get(key);
-
-        if (!entry || now - entry.firstFailAt > this.windomMs) {
-            this.attempts.set(key, { fails: 1, firstFailAt: now, lockUntil: 0 });
-            return;
-        }
-
-        entry.fails += 1;
-
-        if (entry.fails >= this.lockAfterFails) {
-            entry.lockUntil = now + this.lockMs;
-        }
-    }
-
-    recordSuccess(key: string) {
+    recordSuccess(key: string): void { 
         this.attempts.delete(key);
     }
 
-    async sleep(ms: number) {
-        if (ms <= 0)
-            return;
+    recordFailure(key: string): void {
+        const entry = this.attempts.get(key);
+        const now = Date.now();
 
-        await new Promise((r) => setTimeout(r, ms));
+        if (!entry) {
+            this.attempts.set(key, {
+                count: 1,
+                firstFailAt: now,
+            });
+            return;
+        }
+
+        if (now - entry.firstFailAt > this.windowMs) {
+            entry.count = 1;
+            entry.firstFailAt = now;
+            return;
+        }
+
+        entry.count += 1;
+    }
+
+    getBackoff(key: string): number { 
+        const entry = this.attempts.get(key);
+
+        if (!entry || entry.count < this.lockAfterFails)
+            return 0;
+
+
+        // Exponential Backoff: 2^(attemps - lockAfterFails) seconds
+        // Example: lockAfterFials=10, attempts = 11 => 2^1 = 2 seconds
+        const exponentialMs = Math.pow(2, entry.count - this.lockAfterFails) * 1000;
+
+        return Math.min(exponentialMs, this.windowMs);
+    }
+
+    sleep(ms: number): Promise<void> {
+        // Enforce backoff on client side
+        return Promise.resolve();
+    }
+
+    reset(key: string): void {
+        this.attempts.delete(key);
     }
 }
