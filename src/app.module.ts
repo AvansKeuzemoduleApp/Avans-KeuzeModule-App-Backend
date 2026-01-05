@@ -6,7 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { ProfileModule } from './modules/proflie/profile.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
     imports: [
