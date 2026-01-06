@@ -27,17 +27,41 @@ export class AuthService {
         this.dummyHash = v;
     }
 
+    private normalizeEmail(email: string): string{
+        return (email ?? '').trim().toLowerCase();
+    }
+
+    private isDuplicateKeyError(err: any): boolean{
+        // Duplicate Key Error Code Handling
+        const code = err?.code;
+        const erno = err?.errno;
+        const sqlState = err?.sqlState;
+
+        return code === 'ER_DUP_ENTRY' || erno === 1062 || sqlState === '23000';
+    }
+
     async register(dto: RegisterDto): Promise<void> {
-        const email = dto.email.trim().toLowerCase();
+        const email = this.normalizeEmail(dto.email);
         const rounds = Number(process.env.BCRYPT_ROUNDS ?? 12);
         const passwordHash = await bcrypt.hash(dto.password, rounds);
 
-        const user = await this.usersService.createIfNotExists(email, passwordHash);
+        let user: any;
+        try {
+            user = await this.usersService.createIfNotExists(email, passwordHash);
+        } catch (err) {
+            // Prevent leaking "email already exists" via DB errors
+            if (this.isDuplicateKeyError(err)) {
+                this.logger.warn(`Duplicate registration attempt suppressed.`);
+                return;
+            }
+
+        throw err;
+        }
+
         if (user) {
             try {
                 await this.profileService.ensureStudentProfileExists(user.id);
             } catch (error) {
-                // Log error, but it doesn't matter. it gets created on GET profile anyways.
                 this.logger.error(`Failed to create student profile during registration: ${error}`);
             }
         }
@@ -50,6 +74,7 @@ export class AuthService {
         const ok = await bcrypt.compare(dto.password, hashToCheck);
 
         if (!user || !ok) {
+            // Generic Response
             throw new UnauthorizedException('Invalid Credentials');
         }
 
