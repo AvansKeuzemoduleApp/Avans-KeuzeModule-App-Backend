@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
 
 import { UsersModule } from '../users/users.module';
 import { ProfileModule } from '../profile/profile.module';
@@ -11,6 +12,8 @@ import { AuthService } from './auth.service';
 import { RefreshToken } from './tokens/refresh-token.entity';
 import { RefreshTokensService } from './tokens/refresh-tokens.service';
 import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
+
+import { LoginProtectionService } from './login-protection/login-protection.service';
 
 @Module({
     imports: [
@@ -35,7 +38,9 @@ import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
         })
     ],
     controllers: [AuthController],
-    providers: [AuthService, RefreshTokensService, JwtCookieAuthGuard],
+    providers: [AuthService, RefreshTokensService, JwtCookieAuthGuard, LoginProtectionService,
+        { provide: APP_GUARD, useClass: JwtCookieAuthGuard },
+    ],
     exports: [JwtCookieAuthGuard],
 })
 export class AuthModule { }

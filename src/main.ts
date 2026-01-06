@@ -2,16 +2,21 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
+import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+<<<<<<< feature/Modules-Endpoint
   app.setGlobalPrefix('api');
 
+=======
+>>>>>>> develop
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 'loopback');
 
   app.use(cookieParser());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   const corsOrigins =
     process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim().length > 0 ? 
@@ -19,7 +24,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: corsOrigins,
-    Credential: true,
+    credentials: true,
   })
 
   app.useGlobalPipes(
