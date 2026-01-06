@@ -1,0 +1,12 @@
+{
+  "version": "1",
+  "name": "avans 2-1 lu3",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ],
+  "settings": {
+    "storeCookies": true
+  }
+}
