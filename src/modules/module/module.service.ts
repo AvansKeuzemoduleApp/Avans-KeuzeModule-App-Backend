@@ -8,7 +8,7 @@ export class ModuleService {
     constructor(
         @InjectRepository(Module)
         private readonly moduleRepo: Repository<Module>,
-    ) {}
+    ) { }
 
     async findAll(): Promise<Module[]> {
         return this.moduleRepo.find({
@@ -19,8 +19,8 @@ export class ModuleService {
     }
 
     async findOne(id: number): Promise<Module> {
-        const module = await this.moduleRepo.findOne({ where: { id } });
-        
+        const module = await this.moduleRepo.findOne({ where: { id: id } });
+
         if (!module) {
             throw new NotFoundException(`Module with ID ${id} not found`);
         }
