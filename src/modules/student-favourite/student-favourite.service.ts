@@ -26,7 +26,20 @@ export class StudentFavouriteService {
             moduleId,
         });
 
-        return this.studentFavouriteRepo.save(favourite);
+        try {
+            return await this.studentFavouriteRepo.save(favourite);
+        } catch (error: any) {
+            // Handle potential race condition where another request inserts the same favourite
+            const errorCode = error?.code;
+            if (
+                errorCode === '23505' ||          // PostgreSQL unique_violation
+                errorCode === 'ER_DUP_ENTRY' ||    // MySQL duplicate entry
+                errorCode === 'SQLITE_CONSTRAINT'  // SQLite constraint violation
+            ) {
+                throw new ConflictException('Module is already in favourites');
+            }
+            throw error;
+        }
     }
 
     async removeFavourite(studentId: string, moduleId: number): Promise<void> {
