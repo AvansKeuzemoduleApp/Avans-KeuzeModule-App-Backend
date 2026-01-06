@@ -14,6 +14,11 @@ body:text {
   {}
 }
 
+script:post-response {
+  bru.setVar("access_token_cookie", "");
+  console.log("Access token cleared");
+}
+
 settings {
   encodeUrl: true
 }
