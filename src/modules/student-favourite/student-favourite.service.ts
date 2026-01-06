@@ -28,4 +28,16 @@ export class StudentFavouriteService {
 
         return this.studentFavouriteRepo.save(favourite);
     }
+
+    async removeFavourite(studentId: string, moduleId: number): Promise<void> {
+        const favourite = await this.studentFavouriteRepo.findOne({
+            where: { studentId, moduleId },
+        });
+
+        if (!favourite) {
+            throw new NotFoundException('Favourite not found');
+        }
+
+        await this.studentFavouriteRepo.remove(favourite);
+    }
 }
