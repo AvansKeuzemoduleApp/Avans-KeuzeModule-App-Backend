@@ -6,12 +6,8 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-<<<<<<< feature/Modules-Endpoint
   app.setGlobalPrefix('api');
 
-=======
->>>>>>> develop
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 'loopback');
 
