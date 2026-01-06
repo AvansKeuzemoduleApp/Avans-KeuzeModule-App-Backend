@@ -10,11 +10,11 @@ export class StudentFavourite {
     @PrimaryColumn({ name: 'module_id', type: 'int' })
     moduleId!: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'student_id' })
     student!: User;
 
-    @ManyToOne(() => Module)
+    @ManyToOne(() => Module, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'module_id' })
     module!: Module;
 }
