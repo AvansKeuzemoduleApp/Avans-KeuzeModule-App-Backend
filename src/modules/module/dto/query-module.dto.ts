@@ -3,7 +3,6 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum SortOption {
     POPULARITY = 'popularity',
-    MATCH = 'match',
     DIFFICULTY = 'difficulty',
     NAME = 'name',
     START_DATE = 'start_date',
@@ -27,7 +26,7 @@ export class QueryModuleDto {
 
     @IsOptional()
     @Transform(({ value }) => value === null || value === undefined || value === '' ? 'popularity' : String(value).trim())
-    @IsEnum(SortOption, { message: 'Sort must be one of: popularity, match, difficulty, name, start_date' })
+    @IsEnum(SortOption, { message: 'Sort must be one of: popularity, difficulty, name, start_date' })
     sort?: SortOption = SortOption.POPULARITY;
 }
 

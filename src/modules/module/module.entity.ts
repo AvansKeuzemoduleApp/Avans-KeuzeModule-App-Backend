@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('modules')
+@Entity('module_information')
 export class Module {
     @PrimaryGeneratedColumn()
     id!: number;
@@ -9,13 +9,13 @@ export class Module {
     name!: string;
 
     @Column({ name: 'shortdescription' })
-    shortdescription!: string;
+    shortDescription!: string;
 
     @Column({ type: 'text' })
     description!: string;
 
     @Column({ name: 'studycredit', type: 'int' })
-    studycredit!: number;
+    studyCredit!: number;
 
     @Column()
     location!: string;
@@ -26,14 +26,11 @@ export class Module {
     @Column()
     level!: string;
 
-    @Column({ type: 'text' })
-    learningoutcomes!: string;
+    @Column({ name: 'learningoutcomes', type: 'text' })
+    learningOutcomes!: string;
 
     @Column({ name: 'module_tags', type: 'json' })
     moduleTags!: string[];
-
-    @Column({ name: 'interests_match_score', type: 'decimal', precision: 5, scale: 2, nullable: true })
-    interestsMatchScore?: number | null;
 
     @Column({ name: 'popularity_score', type: 'int' })
     popularityScore!: number;
@@ -46,9 +43,6 @@ export class Module {
 
     @Column({ name: 'start_date', type: 'date' })
     startDate!: string;
-
-    @Column({ name: 'combined_text', type: 'text', nullable: true })
-    combinedText?: string | null;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;
