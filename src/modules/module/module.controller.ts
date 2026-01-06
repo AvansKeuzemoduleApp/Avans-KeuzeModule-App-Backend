@@ -14,10 +14,16 @@ export class ModuleController {
         @Req() req: RequestWithUser,
         @Query() query: QueryModuleDto
     ) {
-        if (!req.user?.sub) {
-            query.favourites = false;
+        const userId = req.user?.sub;
+
+        if (!userId) {
+            // For unauthenticated requests, do not mutate the incoming query object.
+            // Instead, pass a derived query with favourites explicitly set to false
+            // and an undefined user ID.
+            return this.moduleService.findAll({ ...query, favourites: false }, undefined);
         }
-        return this.moduleService.findAll(query, req.user?.sub);
+
+        return this.moduleService.findAll(query, userId);
     }
 
     @Get(':id')
