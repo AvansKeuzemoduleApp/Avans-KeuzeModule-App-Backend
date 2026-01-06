@@ -14,7 +14,6 @@ export class ModuleController {
         @Req() req: RequestWithUser,
         @Query() query: QueryModuleDto
     ) {
-        console.log(req.user?.sub)
         if (!req.user?.sub) {
             query.favourites = false;
         }
