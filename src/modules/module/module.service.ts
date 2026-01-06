@@ -16,19 +16,23 @@ export class ModuleService {
     async findAll(query: QueryModuleDto, user: string | undefined): Promise<any> {
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
-            .select([
-                'module.*',
-                user ? 'CASE WHEN sf.student_id IS NOT NULL THEN true ELSE false END AS "isFavourite"' : 'false AS "isFavourite"'
-            ]);
+            .select('module');
 
-        // Left join with student_favourites if user is provided
+        // Add isFavourite flag and join student_favourites only when user is provided
         if (user) {
-            queryBuilder.leftJoin(
-                'student_favourites',
-                'sf',
-                'sf.module_id = module.id AND sf.student_id = :userId',
-                { userId: user }
-            );
+            queryBuilder
+                .addSelect(
+                    'CASE WHEN sf.student_id IS NOT NULL THEN true ELSE false END',
+                    'isFavourite',
+                )
+                .leftJoin(
+                    'student_favourites',
+                    'sf',
+                    'sf.module_id = module.id AND sf.student_id = :userId',
+                    { userId: user },
+                );
+        } else {
+            queryBuilder.addSelect('false', 'isFavourite');
         }
 
         // Filter by favourites only if requested
