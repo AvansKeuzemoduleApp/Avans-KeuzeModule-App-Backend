@@ -3,10 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { JwtCookieAuthGuard } from './modules/auth/guards/jwt-cookie.guard';
-import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ProfileModule } from './modules/profile/profile.module';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
     imports: [
@@ -36,7 +35,6 @@ import { ProfileModule } from './modules/profile/profile.module';
 
     providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },
-        { provide: APP_GUARD, useClass: JwtCookieAuthGuard },
     ],
 })
 
