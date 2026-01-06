@@ -1,19 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-<<<<<<< feature/Modules-Endpoint
-import { ProfileModule } from './modules/profile/profile.module';
-import { ModuleModule } from './modules/module/module.module';
-=======
+
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ProfileModule } from './modules/profile/profile.module';
 import { APP_GUARD } from '@nestjs/core';
->>>>>>> develop
+import { ModuleModule } from './modules/module/module.module';
+
 
 @Module({
     imports: [
@@ -33,11 +29,8 @@ import { APP_GUARD } from '@nestjs/core';
         }),
 
         ThrottlerModule.forRoot({
-<<<<<<< feature/Modules-Endpoint
             throttlers: [{ ttl: 60, limit: 100 }],
-=======
-            throttlers: [{ ttl: 60, limit: 100 }]
->>>>>>> develop
+
         }),
 
         UsersModule,
@@ -47,11 +40,7 @@ import { APP_GUARD } from '@nestjs/core';
     ],
 
     providers: [
-<<<<<<< feature/Modules-Endpoint
         { provide: APP_GUARD, useClass: ThrottlerGuard, },
-=======
-        { provide: APP_GUARD, useClass: ThrottlerGuard },
->>>>>>> develop
     ],
 })
 
