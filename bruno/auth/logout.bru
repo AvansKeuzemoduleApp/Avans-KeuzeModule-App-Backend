@@ -1,0 +1,24 @@
+meta {
+  name: logout
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{url}}/auth/logout
+  body: text
+  auth: inherit
+}
+
+body:text {
+  {}
+}
+
+script:post-response {
+  bru.setVar("access_token_cookie", "");
+  console.log("Access token cleared");
+}
+
+settings {
+  encodeUrl: true
+}
