@@ -1,12 +1,5 @@
-import { Transform } from 'class-transformer';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-
-export enum SortOption {
-    POPULARITY = 'popularity',
-    DIFFICULTY = 'difficulty',
-    NAME = 'name',
-    START_DATE = 'start_date',
-}
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryModuleDto {
     @IsOptional()
@@ -25,8 +18,14 @@ export class QueryModuleDto {
     level?: string = 'all';
 
     @IsOptional()
-    @Transform(({ value }) => value === null || value === undefined || value === '' ? 'popularity' : String(value).trim())
-    @IsEnum(SortOption, { message: 'Sort must be one of: popularity, difficulty, name, start_date' })
-    sort?: SortOption = SortOption.POPULARITY;
+    @Transform(({ value }) => value === 'true' || value === true)
+    @IsBoolean()
+    favourites?: boolean;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    page?: number;
 }
 

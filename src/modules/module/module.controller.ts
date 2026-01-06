@@ -1,18 +1,26 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, Req } from '@nestjs/common';
 import { ModuleService } from './module.service';
 import { Public } from '../auth/guards/public.decorator';
+import { QueryModuleDto } from './dto/query-module.dto';
+
+type RequestWithUser = Request & { user?: { sub: string } };
 
 @Controller('modules')
 export class ModuleController {
-    constructor(private readonly moduleService: ModuleService) {}
+    constructor(private readonly moduleService: ModuleService) { }
 
-    @Public()
     @Get()
-    async findAll() {
-        return this.moduleService.findAll();
+    async findAll(
+        @Req() req: RequestWithUser,
+        @Query() query: QueryModuleDto
+    ) {
+        console.log(req.user?.sub)
+        if (!req.user?.sub) {
+            query.favourites = false;
+        }
+        return this.moduleService.findAll(query, req.user?.sub);
     }
 
-    @Public()
     @Get(':id')
     async findOne(@Param('id', ParseIntPipe) id: number) {
         return this.moduleService.findOne(id);
