@@ -1,0 +1,20 @@
+meta {
+  name: delete
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{url}}/student-favourite/:moduleId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  moduleId: 162
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
