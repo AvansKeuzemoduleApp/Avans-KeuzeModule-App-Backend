@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Module } from './module.entity';
 import { QueryModuleDto } from './dto/query-module.dto';
+import { ModuleQueryResponseDto } from './dto/module-response.dto';
 
 const PAGE_SIZE = 10;
 
@@ -13,7 +14,7 @@ export class ModuleService {
         private readonly moduleRepo: Repository<Module>,
     ) { }
 
-    async findAll(query: QueryModuleDto, user: string | undefined): Promise<any> {
+    async findAll(query: QueryModuleDto, user: string | undefined): Promise<ModuleQueryResponseDto> {
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
             .select('module');
@@ -62,14 +63,26 @@ export class ModuleService {
             case 'popularity':
                 queryBuilder.orderBy('module.popularity_score', 'DESC');
                 break;
+            case 'popularity_asc':
+                queryBuilder.orderBy('module.popularity_score', 'ASC');
+                break;
             case 'difficulty':
                 queryBuilder.orderBy('module.estimated_difficulty', 'ASC');
+                break;
+            case 'difficulty_desc':
+                queryBuilder.orderBy('module.estimated_difficulty', 'DESC');
                 break;
             case 'name':
                 queryBuilder.orderBy('module.name', 'ASC');
                 break;
+            case 'name_desc':
+                queryBuilder.orderBy('module.name', 'DESC');
+                break;
             case 'start_date':
                 queryBuilder.orderBy('module.start_date', 'ASC');
+                break;
+            case 'start_date_desc':
+                queryBuilder.orderBy('module.start_date', 'DESC');
                 break;
             default:
                 queryBuilder.orderBy('module.popularity_score', 'DESC');
@@ -95,7 +108,6 @@ export class ModuleService {
             isFavourite: result.isFavourite === true || result.isFavourite === 1 || result.isFavourite === '1'
         }));
 
-        // TODO: make this a DTO instead of an any
         return {
             page: currentPage,
             pages: totalPages,
@@ -103,20 +115,36 @@ export class ModuleService {
             filters: {
                 sortBy: [
                     {
-                        name: "Populariteit",
+                        name: "Populariteit ▼",
                         key: "popularity"
                     },
                     {
-                        name: "Moeilijkheidsgraad",
+                        name: "Populariteit ▲",
+                        key: "popularity_asc"
+                    },
+                    {
+                        name: "Moeilijkheidsgraad ▲",
                         key: "difficulty"
+                    },
+                    {
+                        name: "Moeilijkheidsgraad ▼",
+                        key: "difficulty_desc"
                     },
                     {
                         name: "Naam (A-Z)",
                         key: "name"
                     },
                     {
-                        name: "Startdatum",
+                        name: "Naam (Z-A)",
+                        key: "name_desc"
+                    },
+                    {
+                        name: "Startdatum ▲",
                         key: "start_date"
+                    },
+                    {
+                        name: "Startdatum ▼",
+                        key: "start_date_desc"
                     }
                 ],
                 level: [
