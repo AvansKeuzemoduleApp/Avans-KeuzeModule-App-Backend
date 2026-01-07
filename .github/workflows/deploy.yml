@@ -60,6 +60,7 @@ jobs:
             set -e
             cd /home/sysadmin/${{ github.event.repository.name }}
             docker-compose pull
+            docker-compose down || true
             docker-compose up -d --remove-orphans
             sleep 3
             docker-compose ps
@@ -76,6 +77,7 @@ jobs:
             set -e
             cd /home/sysadmin/${{ github.event.repository.name }}
             docker-compose pull
+            docker-compose down || true
             docker-compose up -d --remove-orphans
             sleep 3
             docker-compose ps
