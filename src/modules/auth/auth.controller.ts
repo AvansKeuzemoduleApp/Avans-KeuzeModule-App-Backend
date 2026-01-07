@@ -68,7 +68,7 @@ export class AuthController {
                 httpOnly: true,
                 secure,
                 sameSite,
-                path: '/auth',
+                path: '/api/auth',
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
 
@@ -88,16 +88,21 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(200)
-    async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    async logout(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
         const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
         const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
+        const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
+        const sameSite = (process.env.COOKIE_SAMESITE ?? 'lax') as 'lax' | 'strict' | 'none';
+
         const refreshToken = req.cookies?.[refreshName];
 
-        await this.authService.logout(refreshToken);
+        const userId = req.user?.sub ? String(req.user.sub) : undefined;
 
-        res.clearCookie(accessName, { path: '/' });
-        res.clearCookie(refreshName, { path: '/auth' });
+        await this.authService.logout(userId, refreshToken);
+
+        res.clearCookie(accessName, { path: '/', secure, sameSite });
+        res.clearCookie(refreshName, { path: '/api/auth', secure, sameSite });
 
         return { message: 'Logged out' };
     }
@@ -130,7 +135,7 @@ export class AuthController {
             httpOnly: true,
             secure,
             sameSite,
-            path: '/auth',
+            path: '/api/auth',
             maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
         });
 

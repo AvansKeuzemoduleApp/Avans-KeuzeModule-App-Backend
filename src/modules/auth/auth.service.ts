@@ -78,7 +78,11 @@ export class AuthService {
             throw new UnauthorizedException('Invalid Credentials');
         }
 
-        const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
+        const accessToken = await this.jwtService.signAsync({
+            sub: user.id,
+            email: user.email,
+            tv: user.tokenVersion ?? 0,
+        });
 
         const refreshToken = this.refreshTokens.generateToken();
         const refreshTtlSeconds = Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800);
@@ -89,12 +93,18 @@ export class AuthService {
         return { accessToken, refreshToken };
     }
 
-    async logout(refreshToken?: string): Promise<void> {
-        if (!refreshToken)
-            return;
+    async logout(userId?: string, refreshToken?: string): Promise<void> {
+        if (refreshToken) {
+            // Logout should be idempotent
+            await this.refreshTokens.delete(refreshToken).catch(() => undefined);
+        }
 
-        // Hard delete
-        await this.refreshTokens.delete(refreshToken);
+        if (userId) {
+            // Invalidate existing access tokens by bumping tokenVersion
+            await this.usersService.bumpTokenVersion(userId);
+            // Revoke any remaining refresh tokens for the user
+            await this.refreshTokens.revokeAllForUser(userId).catch(() => undefined);
+        }
     }
 
 
@@ -114,7 +124,11 @@ export class AuthService {
         const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
         await this.refreshTokens.create(user.id, newRefreshToken, expiresAt);
 
-        const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
+        const accessToken = await this.jwtService.signAsync({
+            sub: user.id,
+            email: user.email,
+            tv: user.tokenVersion ?? 0,
+        });
 
         return { accessToken, refreshToken: newRefreshToken };
     }

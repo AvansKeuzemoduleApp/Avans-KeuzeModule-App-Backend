@@ -327,7 +327,7 @@ describe('Auth E2E Tests', () => {
         expect(cookieArray.some((c: string) => c.includes('access_token') && c.includes('Path=/'))).toBe(true);
         
         // Verify Path for Refresh Token
-        expect(cookieArray.some((c: string) => c.includes('refresh_token') && c.includes('Path=/auth'))).toBe(true);
+        expect(cookieArray.some((c: string) => c.includes('refresh_token') && c.includes('Path=/api/auth'))).toBe(true);
     });
 
     it('Should extract correct IP from X-Forwarded-For header', async () => {
