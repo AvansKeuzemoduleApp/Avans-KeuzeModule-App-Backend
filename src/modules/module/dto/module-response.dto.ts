@@ -9,9 +9,9 @@ export class ModuleFilters {
     locations: FilterOption[];
 }
 
-export class ModuleQueryResponseDto {
+export class ModuleQueryResponseDto<T = unknown> {
     page: number;
     pages: number;
-    data: any[];
+    data: T[];
     filters: ModuleFilters;
 }
