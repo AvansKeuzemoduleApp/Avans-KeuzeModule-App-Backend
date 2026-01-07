@@ -15,6 +15,11 @@ export class QueryModuleDto {
     @IsOptional()
     @Transform(({ value }) => value === null || value === undefined || value === '' ? 'all' : String(value).trim())
     @IsString()
+    sortBy?: string = 'popularity';
+
+    @IsOptional()
+    @Transform(({ value }) => value === null || value === undefined || value === '' ? 'all' : String(value).trim())
+    @IsString()
     level?: string = 'all';
 
     @IsOptional()

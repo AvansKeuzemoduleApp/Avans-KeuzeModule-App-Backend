@@ -56,6 +56,25 @@ export class ModuleService {
             queryBuilder.andWhere('module.level LIKE :level', { level: `%${query.level}%` });
         }
 
+        // Apply sorting
+        const sortBy = query.sortBy || 'popularity';
+        switch (sortBy) {
+            case 'popularity':
+                queryBuilder.orderBy('module.popularity_score', 'DESC');
+                break;
+            case 'difficulty':
+                queryBuilder.orderBy('module.estimated_difficulty', 'ASC');
+                break;
+            case 'name':
+                queryBuilder.orderBy('module.name', 'ASC');
+                break;
+            case 'start_date':
+                queryBuilder.orderBy('module.start_date', 'ASC');
+                break;
+            default:
+                queryBuilder.orderBy('module.popularity_score', 'DESC');
+        }
+
         const totalCount = await queryBuilder.getCount();
         const totalPages = Math.ceil(totalCount / PAGE_SIZE);
         let currentPage = query.page || 1;
