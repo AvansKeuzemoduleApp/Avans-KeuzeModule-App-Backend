@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -40,6 +41,8 @@ import { StudentFavouriteModule } from './modules/student-favourite/student-favo
         ModuleModule,
         StudentFavouriteModule
     ],
+
+    controllers: [AppController],
 
     providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard, },
