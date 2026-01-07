@@ -13,7 +13,7 @@ export class QueryModuleDto {
     location?: string = 'all';
 
     @IsOptional()
-    @Transform(({ value }) => value === null || value === undefined || value === '' ? 'all' : String(value).trim())
+    @Transform(({ value }) => value === null || value === undefined || value === '' ? 'popularity' : String(value).trim())
     @IsString()
     sortBy?: string = 'popularity';
 
