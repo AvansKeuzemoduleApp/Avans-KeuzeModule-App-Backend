@@ -2,8 +2,7 @@ name: Build, Push, and Deploy via SSH (to portainer)
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, develop]
 
 jobs:
   build-and-deploy:
@@ -59,7 +58,7 @@ jobs:
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
             set -e
-            cd /home/deploy/${{ github.event.repository.name }}
+            cd /home/sysadmin/${{ github.event.repository.name }}
             docker compose pull
             docker compose up -d --remove-orphans
             sleep 3
@@ -75,7 +74,7 @@ jobs:
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
             set -e
-            cd /home/deploy/${{ github.event.repository.name }}
+            cd /home/sysadmin/${{ github.event.repository.name }}
             docker compose pull
             docker compose up -d --remove-orphans
             sleep 3
