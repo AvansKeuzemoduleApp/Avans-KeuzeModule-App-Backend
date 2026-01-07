@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Module } from './module.entity';
 import { QueryModuleDto } from './dto/query-module.dto';
+import { ModuleQueryResponseDto } from './dto/module-response.dto';
 
 const PAGE_SIZE = 10;
 
@@ -13,7 +14,7 @@ export class ModuleService {
         private readonly moduleRepo: Repository<Module>,
     ) { }
 
-    async findAll(query: QueryModuleDto, user: string | undefined): Promise<any> {
+    async findAll(query: QueryModuleDto, user: string | undefined): Promise<ModuleQueryResponseDto> {
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
             .select('module');
@@ -56,6 +57,37 @@ export class ModuleService {
             queryBuilder.andWhere('module.level LIKE :level', { level: `%${query.level}%` });
         }
 
+        // Apply sorting
+        const sortBy = query.sortBy || 'popularity';
+        switch (sortBy) {
+            case 'popularity':
+                queryBuilder.orderBy('module.popularity_score', 'DESC');
+                break;
+            case 'popularity_asc':
+                queryBuilder.orderBy('module.popularity_score', 'ASC');
+                break;
+            case 'difficulty':
+                queryBuilder.orderBy('module.estimated_difficulty', 'ASC');
+                break;
+            case 'difficulty_desc':
+                queryBuilder.orderBy('module.estimated_difficulty', 'DESC');
+                break;
+            case 'name':
+                queryBuilder.orderBy('module.name', 'ASC');
+                break;
+            case 'name_desc':
+                queryBuilder.orderBy('module.name', 'DESC');
+                break;
+            case 'start_date':
+                queryBuilder.orderBy('module.start_date', 'ASC');
+                break;
+            case 'start_date_desc':
+                queryBuilder.orderBy('module.start_date', 'DESC');
+                break;
+            default:
+                queryBuilder.orderBy('module.popularity_score', 'DESC');
+        }
+
         const totalCount = await queryBuilder.getCount();
         const totalPages = Math.ceil(totalCount / PAGE_SIZE);
         let currentPage = query.page || 1;
@@ -79,7 +111,75 @@ export class ModuleService {
         return {
             page: currentPage,
             pages: totalPages,
-            data
+            data,
+            filters: {
+                sortBy: [
+                    {
+                        name: "Populariteit ▼",
+                        key: "popularity"
+                    },
+                    {
+                        name: "Populariteit ▲",
+                        key: "popularity_asc"
+                    },
+                    {
+                        name: "Moeilijkheidsgraad ▲",
+                        key: "difficulty"
+                    },
+                    {
+                        name: "Moeilijkheidsgraad ▼",
+                        key: "difficulty_desc"
+                    },
+                    {
+                        name: "Naam (A-Z)",
+                        key: "name"
+                    },
+                    {
+                        name: "Naam (Z-A)",
+                        key: "name_desc"
+                    },
+                    {
+                        name: "Startdatum ▲",
+                        key: "start_date"
+                    },
+                    {
+                        name: "Startdatum ▼",
+                        key: "start_date_desc"
+                    }
+                ],
+                level: [
+                    {
+                        name: "NLQF5",
+                        key: "NLQF5"
+                    },
+                    {
+                        name: "NLQF6",
+                        key: "NLQF6"
+                    },
+                    {
+                        name: "Alle niveaus",
+                        key: "all"
+                    }
+                ],
+                locations: [
+                    {
+                        name: "Breda",
+                        key: "breda"
+                    },
+                    {
+                        name: "Tilburg",
+                        key: "tilburg"
+                    },
+                    {
+                        name: "Den Bosch",
+                        key: "den bosch"
+                    },
+                    {
+                        name: "Alle locaties",
+                        key: "all"
+                    }
+                ]
+            }
         };
     }
 
