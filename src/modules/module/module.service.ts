@@ -58,7 +58,10 @@ export class ModuleService {
 
         const totalCount = await queryBuilder.getCount();
         const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-        const currentPage = query.page || 1;
+        let currentPage = query.page || 1;
+        if (currentPage > totalPages) {
+            currentPage = 1;
+        }
 
         // Apply pagination with offset and limit
         queryBuilder
