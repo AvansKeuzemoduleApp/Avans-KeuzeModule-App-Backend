@@ -19,11 +19,16 @@ export class UsersService {
         return this.usersRepo.findOne({ where: { id } });
     }
 
+    async bumpTokenVersion(userId: string): Promise<void> {
+        await this.usersRepo.increment({ id: userId }, 'tokenVersion', 1);
+    }
+
     async createIfNotExists(email: string, passwordHash: string): Promise<User | null> {
         try {
             const user = this.usersRepo.create({
                 email,
                 passwordHash,
+                tokenVersion: 0,
             });
 
             await this.usersRepo.insert(user);

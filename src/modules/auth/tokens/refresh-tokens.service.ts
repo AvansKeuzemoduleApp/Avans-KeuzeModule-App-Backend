@@ -61,17 +61,13 @@ export class RefreshTokensService {
 
     async revokeAllForUser(userId: string): Promise<void> {
         const result = await this.repo.update({ userId, }, { revokedAt: new Date() });
-        if (!result.affected) {
-            throw new Error ('Refresh token not found or already revoked');
-        }
+        // idempotent: ok if user has no tokens
     }
 
     async delete(token: string): Promise<void> {
         const tokenHash = this.hashToken(token);
         
         const result = await this.repo.delete({ tokenHash });
-        if (!result.affected) {
-            throw new Error('Refresh token not found');
-        }
+        // idempotent: ok if token doesn't exist
     }
 }
