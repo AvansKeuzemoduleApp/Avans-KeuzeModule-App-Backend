@@ -1,0 +1,22 @@
+meta {
+  name: add favourite
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}/student-favourite
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "moduleId": 160
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
