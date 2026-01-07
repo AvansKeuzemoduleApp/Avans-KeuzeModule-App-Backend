@@ -59,6 +59,9 @@ export class AuthService {
         }
 
         if (user) {
+            // Assign default role for self-registered users
+            await this.usersService.ensureRoleByName(user.id, 'student');
+
             try {
                 await this.profileService.ensureStudentProfileExists(user.id);
             } catch (error) {
