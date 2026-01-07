@@ -95,10 +95,63 @@ export class ModuleService {
             isFavourite: result.isFavourite === true || result.isFavourite === 1 || result.isFavourite === '1'
         }));
 
+        // TODO: make this a DTO instead of an any
         return {
             page: currentPage,
             pages: totalPages,
-            data
+            data,
+            filters: {
+                sortBy: [
+                    {
+                        name: "Populariteit",
+                        key: "popularity"
+                    },
+                    {
+                        name: "Moeilijkheidsgraad",
+                        key: "difficulty"
+                    },
+                    {
+                        name: "Naam (A-Z)",
+                        key: "name"
+                    },
+                    {
+                        name: "Startdatum",
+                        key: "start_date"
+                    }
+                ],
+                level: [
+                    {
+                        name: "NLQF5",
+                        key: "NLQF5"
+                    },
+                    {
+                        name: "NLQF6",
+                        key: "NLQF6"
+                    },
+                    {
+                        name: "Alle niveaus",
+                        key: "all"
+                    }
+                ],
+                locations: [
+                    {
+                        name: "Breda",
+                        key: "breda"
+                    },
+                    {
+                        name: "Tilburg",
+                        key: "tilburg"
+                    },
+                    {
+                        name: "Den Bosch",
+                        key: "den bosch"
+                    },
+                    {
+                        name: "Alle locaties",
+                        key: "all"
+                    }
+                ]
+            }
         };
     }
 
