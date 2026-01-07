@@ -59,10 +59,10 @@ jobs:
           script: |
             set -e
             cd /home/sysadmin/${{ github.event.repository.name }}
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker-compose pull
+            docker-compose up -d --remove-orphans
             sleep 3
-            docker compose ps
+            docker-compose ps
 
       - name: Deploy to VPS via SSH (no passphrase)
         if: ${{ env.SSH_PASSPHRASE == '' }}
@@ -75,7 +75,7 @@ jobs:
           script: |
             set -e
             cd /home/sysadmin/${{ github.event.repository.name }}
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker-compose pull
+            docker-compose up -d --remove-orphans
             sleep 3
-            docker compose ps
+            docker-compose ps
