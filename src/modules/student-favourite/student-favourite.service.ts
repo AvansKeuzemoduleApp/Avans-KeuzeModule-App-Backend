@@ -18,7 +18,7 @@ export class StudentFavouriteService {
             where: { studentId, moduleId },
         });
         if (existingFavourite) {
-            throw new ConflictException('Module is already in favourites');
+            return existingFavourite;
         }
 
         const favourite = this.studentFavouriteRepo.create({
@@ -30,14 +30,6 @@ export class StudentFavouriteService {
             return await this.studentFavouriteRepo.save(favourite);
         } catch (error: any) {
             // Handle potential race condition where another request inserts the same favourite
-            const errorCode = error?.code;
-            if (
-                errorCode === '23505' ||          // PostgreSQL unique_violation
-                errorCode === 'ER_DUP_ENTRY' ||    // MySQL duplicate entry
-                errorCode === 'SQLITE_CONSTRAINT'  // SQLite constraint violation
-            ) {
-                throw new ConflictException('Module is already in favourites');
-            }
             throw error;
         }
     }
@@ -48,7 +40,7 @@ export class StudentFavouriteService {
         });
 
         if (!favourite) {
-            throw new NotFoundException('Favourite not found');
+            return;
         }
 
         await this.studentFavouriteRepo.remove(favourite);
