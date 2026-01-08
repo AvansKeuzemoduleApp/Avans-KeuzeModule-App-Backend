@@ -18,7 +18,7 @@ export class StudentFavouriteService {
             where: { studentId, moduleId },
         });
         if (existingFavourite) {
-            throw new ConflictException('Module is already in favourites');
+            return existingFavourite;
         }
 
         const favourite = this.studentFavouriteRepo.create({
