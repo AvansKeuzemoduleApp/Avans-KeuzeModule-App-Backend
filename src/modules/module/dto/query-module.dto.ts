@@ -1,26 +1,30 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class QueryModuleDto {
     @IsOptional()
     @Transform(({ value }) => value === null || value === undefined || value === '' ? undefined : String(value).trim())
     @IsString()
+    @MaxLength(100)
     search?: string;
 
     @IsOptional()
     @Transform(({ value }) => value === null || value === undefined || value === '' ? 'all' : String(value).trim())
     @IsString()
+    @MaxLength(50)
     location?: string = 'all';
 
     @IsOptional()
     @Transform(({ value }) => value === null || value === undefined || value === '' ? 'popularity' : String(value).trim())
     @IsIn(['popularity', 'popularity_asc', 'difficulty', 'difficulty_desc', 'name', 'name_desc', 'start_date', 'start_date_desc'])
     @IsString()
+    @MaxLength(50)
     sortBy?: string = 'popularity';
 
     @IsOptional()
     @Transform(({ value }) => value === null || value === undefined || value === '' ? 'all' : String(value).trim())
     @IsString()
+    @MaxLength(50)
     level?: string = 'all';
 
     @IsOptional()
@@ -32,6 +36,7 @@ export class QueryModuleDto {
     @Type(() => Number)
     @IsInt()
     @Min(1)
+    @Max(10000)
     page?: number;
 }
 
