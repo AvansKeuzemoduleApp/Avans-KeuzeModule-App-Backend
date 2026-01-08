@@ -5,7 +5,8 @@ services:
     image: wasssiim/avans-keuzemodule-app-backend:latest
     container_name: avans-keuzemodule-backend
     restart: unless-stopped
-    ports:
+    
+    expose:
       - "3000"
     env_file:
       - .env
