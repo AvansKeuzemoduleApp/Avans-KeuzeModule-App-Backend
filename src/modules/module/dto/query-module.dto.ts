@@ -18,7 +18,6 @@ export class QueryModuleDto {
     @Transform(({ value }) => value === null || value === undefined || value === '' ? 'popularity' : String(value).trim())
     @IsIn(['popularity', 'popularity_asc', 'difficulty', 'difficulty_desc', 'name', 'name_desc', 'start_date', 'start_date_desc'])
     @IsString()
-    @MaxLength(50)
     sortBy?: string = 'popularity';
 
     @IsOptional()
