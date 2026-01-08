@@ -29,7 +29,15 @@ export class StudentFavouriteService {
         try {
             return await this.studentFavouriteRepo.save(favourite);
         } catch (error: any) {
-            // Handle potential race condition where another request inserts the same favourite
+            // Handle race condition: if duplicate key error occurs, fetch and return existing record
+            if (error.code === 'ER_DUP_ENTRY' || error.message?.includes('Duplicate entry')) {
+                const existing = await this.studentFavouriteRepo.findOne({
+                    where: { studentId, moduleId },
+                });
+                if (existing) {
+                    return existing;
+                }
+            }
             throw error;
         }
     }
