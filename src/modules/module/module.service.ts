@@ -103,13 +103,18 @@ export class ModuleService {
         const results = await queryBuilder.getRawMany();
 
         // Remove module_ prefix from keys and convert isFavourite to boolean
-        const data = results.map(result => {
-            const cleaned: any = {};
-            Object.keys(result).forEach((key) => {
+        const data = results.map((result): Record<string, unknown> => {
+            const cleaned: Record<string, unknown> = {};
+            for (const key in result) {
                 const cleanKey = key.startsWith('module_') ? key.replace('module_', '') : key;
                 cleaned[cleanKey] = result[key];
-            });
-            cleaned.isFavourite = cleaned.isFavourite === true || cleaned.isFavourite === 1 || cleaned.isFavourite === '1';
+            }
+            const isFavouriteValue = cleaned['isFavourite'];
+            const isFavourite =
+                isFavouriteValue === true ||
+                isFavouriteValue === 1 ||
+                isFavouriteValue === '1';
+            cleaned['isFavourite'] = isFavourite;
             return cleaned;
         });
 
