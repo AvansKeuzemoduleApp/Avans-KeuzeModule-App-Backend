@@ -105,10 +105,10 @@ export class ModuleService {
         // Remove module_ prefix from keys and convert isFavourite to boolean
         const data = results.map(result => {
             const cleaned: any = {};
-            for (const key in result) {
+            Object.keys(result).forEach((key) => {
                 const cleanKey = key.startsWith('module_') ? key.replace('module_', '') : key;
                 cleaned[cleanKey] = result[key];
-            }
+            });
             cleaned.isFavourite = cleaned.isFavourite === true || cleaned.isFavourite === 1 || cleaned.isFavourite === '1';
             return cleaned;
         });
