@@ -1,7 +1,7 @@
 import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,29 +10,29 @@ import { ModuleService } from '../module/module.service';
 
 @Injectable()
 export class StudentFavouriteService {
-  constructor(
-    @InjectRepository(StudentFavourite)
-    private readonly studentFavouriteRepo: Repository<StudentFavourite>,
-    private readonly moduleService: ModuleService,
-  ) {}
+    constructor(
+        @InjectRepository(StudentFavourite)
+        private readonly studentFavouriteRepo: Repository<StudentFavourite>,
+        private readonly moduleService: ModuleService,
+    ) { }
 
-  async addFavourite(
-    studentId: string,
-    moduleId: number,
-  ): Promise<StudentFavourite> {
-    await this.moduleService.findOne(moduleId, undefined);
-    const existingFavourite = await this.studentFavouriteRepo.findOne({
-      where: { studentId, moduleId },
-    });
-    if (existingFavourite) {
-        return existingFavourite;
-    }
+    async addFavourite(
+        studentId: string,
+        moduleId: number,
+    ): Promise<StudentFavourite> {
+        await this.moduleService.findOne(moduleId, undefined);
+        const existingFavourite = await this.studentFavouriteRepo.findOne({
+            where: { studentId, moduleId },
+        });
+        if (existingFavourite) {
+            return existingFavourite;
+        }
 
 
-    const favourite = this.studentFavouriteRepo.create({
-      studentId,
-      moduleId,
-    });
+        const favourite = this.studentFavouriteRepo.create({
+            studentId,
+            moduleId,
+        });
 
         try {
             return await this.studentFavouriteRepo.save(favourite);
@@ -49,7 +49,6 @@ export class StudentFavouriteService {
             throw error;
         }
     }
-  }
 
     async removeFavourite(studentId: string, moduleId: number): Promise<void> {
         const favourite = await this.studentFavouriteRepo.findOne({
@@ -60,6 +59,6 @@ export class StudentFavouriteService {
             return;
         }
 
-    await this.studentFavouriteRepo.remove(favourite);
-  }
+        await this.studentFavouriteRepo.remove(favourite);
+    }
 }
