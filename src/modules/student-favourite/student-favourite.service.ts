@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudentFavourite } from './student-favourite.entity';
@@ -12,14 +16,18 @@ export class StudentFavouriteService {
         private readonly moduleService: ModuleService,
     ) { }
 
-    async addFavourite(studentId: string, moduleId: number): Promise<StudentFavourite> {
-        await this.moduleService.findOne(moduleId);
+    async addFavourite(
+        studentId: string,
+        moduleId: number,
+    ): Promise<StudentFavourite> {
+        await this.moduleService.findOne(moduleId, undefined);
         const existingFavourite = await this.studentFavouriteRepo.findOne({
             where: { studentId, moduleId },
         });
         if (existingFavourite) {
             return existingFavourite;
         }
+
 
         const favourite = this.studentFavouriteRepo.create({
             studentId,
