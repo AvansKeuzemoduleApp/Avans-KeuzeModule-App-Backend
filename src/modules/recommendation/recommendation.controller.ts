@@ -10,6 +10,7 @@ export class RecommendationController {
 
     @Get()
     async getRecommendations(@Req() req: RequestWithUser): Promise<RecommendationResponseDto> {
+        // TODO: allow filters like the reccomendation endpoint
         const userId = req.user?.sub;
         if (!userId) {
             throw new UnauthorizedException('User not authenticated');

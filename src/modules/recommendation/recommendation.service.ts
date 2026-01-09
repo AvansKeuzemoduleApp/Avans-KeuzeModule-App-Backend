@@ -137,10 +137,10 @@ export class RecommendationService {
             estimated_difficulty: order.moduleInformation.estimatedDifficulty,
             available_spots: order.moduleInformation.availableSpots,
             start_date: order.moduleInformation.startDate,
-            isFavourite: false,
+            isFavourite: false, // TODO: add favourites data
         }));
 
-        // Get unique values for filters
+        // TODO: load this from the hardcoded thing instead.
         const levels = [...new Set(modules.map((m) => m.level))].map((level) => ({
             name: level,
             key: level,
@@ -150,6 +150,8 @@ export class RecommendationService {
             name: location,
             key: location,
         }));
+
+        // TODO: apply pagination
 
         return {
             modelVersion: cache.modelVersion,

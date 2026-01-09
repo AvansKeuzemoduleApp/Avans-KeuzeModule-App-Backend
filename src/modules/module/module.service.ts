@@ -116,7 +116,7 @@ export class ModuleService {
             pages: totalPages,
             data,
             filters: {
-                sortBy: [
+                sortBy: [ // TODO: Put this hardcoded ess in a file where i can reference it
                     {
                         name: 'Populariteit ▼',
                         key: 'popularity',
