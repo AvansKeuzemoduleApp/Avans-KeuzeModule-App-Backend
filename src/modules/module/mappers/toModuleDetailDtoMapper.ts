@@ -1,14 +1,18 @@
-import { ModuleDetailDto } from '../dto/ModuleDetailDto';
+import { ModuleDetailDto } from '../dto/moduledetail-response.dto';
 
 export class ModuleMapper {
   static toDetailDto(raw: any): ModuleDetailDto {
     const tagsRaw = raw.module_module_tags;
-    const moduleTags = Array.isArray(tagsRaw)
-      ? tagsRaw
-      : typeof tagsRaw === 'string'
-        ? JSON.parse(tagsRaw)
-        : [];
-
+    let moduleTags: any[] = [];
+    if (Array.isArray(tagsRaw)) {
+      moduleTags = tagsRaw;
+    } else if (typeof tagsRaw === 'string') {
+      try {
+        moduleTags = JSON.parse(tagsRaw);
+      } catch {
+        moduleTags = [];
+      }
+    }
     const startDateRaw = raw.module_start_date;
     const startDate =
       startDateRaw instanceof Date

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Module } from './module.entity';
 import { QueryModuleDto } from './dto/query-module.dto';
 import { ModuleQueryResponseDto } from './dto/module-response.dto';
-import { ModuleDetailDto } from './dto/ModuleDetailDto';
+import { ModuleDetailDto } from './dto/moduledetail-response.dto';
 import { ModuleMapper } from './mappers/toModuleDetailDtoMapper';
 
 const PAGE_SIZE = 10;
