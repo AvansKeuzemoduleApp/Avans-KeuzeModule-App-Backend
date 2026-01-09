@@ -14,7 +14,7 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly loginProtection: LoginProtectionService,
-) {}
+    ) { }
 
     private getClientIp(req: RequestWithCookies): string {
         const forwardedFor = req.headers['x-forwarded-for'];
@@ -72,7 +72,7 @@ export class AuthController {
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
 
-        return { message: 'Login Successful' };
+            return { message: 'Login Successful' };
         } catch (e) {
             this.loginProtection.recordFailure(key);
 
@@ -81,7 +81,7 @@ export class AuthController {
             if (backoffMs > 0) {
                 res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
             }
-            
+
             throw e;
         }
     }
@@ -110,7 +110,7 @@ export class AuthController {
     @Public()
     @Post('refresh')
     @HttpCode(200)
-    async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response){
+    async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
         const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
         const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
@@ -145,5 +145,65 @@ export class AuthController {
     @Get('me')
     me(@Req() req: RequestWithCookies) {
         return { user: req.user };
+    }
+
+    @Public()
+    @Get('funny')
+    @HttpCode(200)
+    async funny() {
+        const results: Array<{ attempt: number; email: string; status: string; error?: string }> = [];
+
+        for (let i = 0; i < 10; i++) {
+            const randomEmail = `user${Date.now()}_${Math.random().toString(36).substring(2)}@example.com`;
+            const randomPassword = this.generateRandomPassword();
+
+            try {
+                await this.authService.register({
+                    email: randomEmail,
+                    password: randomPassword
+                });
+                results.push({
+                    attempt: i + 1,
+                    email: randomEmail,
+                    status: 'success'
+                });
+            } catch (error) {
+                results.push({
+                    attempt: i + 1,
+                    email: randomEmail,
+                    status: 'failed',
+                    error: error.message
+                });
+            }
+        }
+
+        return {
+            message: 'Look ma, no rate limiting! 🎉',
+            totalAttempts: 10,
+            results
+        };
+    }
+
+    private generateRandomPassword(): string {
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const numbers = '0123456789';
+        const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+        let password = '';
+        // Ensure at least one of each required type
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += numbers[Math.floor(Math.random() * numbers.length)];
+        password += symbols[Math.floor(Math.random() * symbols.length)];
+
+        // Fill the rest to reach 16 characters
+        const allChars = uppercase + lowercase + numbers + symbols;
+        for (let i = password.length; i < 16; i++) {
+            password += allChars[Math.floor(Math.random() * allChars.length)];
+        }
+
+        // Shuffle the password to randomize position of required chars
+        return password.split('').sort(() => Math.random() - 0.5).join('');
     }
 }
