@@ -1,18 +1,18 @@
 export class ModuleDetailDto {
   id: number;
   name: string;
-  shortDescription: string;
+  shortdescription: string;
   description: string;
-  studyCredit: number;
+  studycredit: number;
   location: string;
-  contactId: number;
+  contact_id: number;
   level: string;
-  learningOutcomes: string;
-  moduleTags: string[];
-  popularityScore: number;
-  estimatedDifficulty: number;
-  availableSpots: number;
-  startDate: string;
+  learningoutcomes: string;
+  module_tags: string[];
+  popularity_score: number;
+  estimated_difficulty: number;
+  available_spots: number;
+  start_date: string;
 
   isFavourite: boolean;
 }

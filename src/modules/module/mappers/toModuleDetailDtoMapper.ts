@@ -20,18 +20,18 @@ export class ModuleMapper {
     return {
       id: raw.module_id,
       name: raw.module_name,
-      shortDescription: raw.module_shortdescription,
+      shortdescription: raw.module_shortdescription,
       description: raw.module_description,
-      studyCredit: raw.module_studycredit,
+      studycredit: raw.module_studycredit,
       location: raw.module_location,
-      contactId: raw.module_contact_id,
+      contact_id: raw.module_contact_id,
       level: raw.module_level,
-      learningOutcomes: raw.module_learningoutcomes,
-      moduleTags,
-      popularityScore: raw.module_popularity_score,
-      estimatedDifficulty: raw.module_estimated_difficulty,
-      availableSpots: raw.module_available_spots,
-      startDate,
+      learningoutcomes: raw.module_learningoutcomes,
+      module_tags: moduleTags,
+      popularity_score: raw.module_popularity_score,
+      estimated_difficulty: raw.module_estimated_difficulty,
+      available_spots: raw.module_available_spots,
+      start_date: startDate,
       isFavourite:
         raw.isFavourite === true ||
         raw.isFavourite === 1 ||
