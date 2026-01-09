@@ -235,12 +235,6 @@ export class ModuleService {
       throw new NotFoundException(`Module with ID ${id} not found`);
     }
 
-    const raw = await queryBuilder.getRawOne();
-
-    if (!raw) {
-      throw new NotFoundException(`Module with ID ${id} not found`);
-    }
-
-    return ModuleMapper.toDetailDto(raw);
+    return ModuleMapper.toDetailDto(result);
   }
 }
