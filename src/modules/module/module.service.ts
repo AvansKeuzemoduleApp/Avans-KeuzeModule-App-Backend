@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Module } from './module.entity';
+import { CreateModuleDto } from './dto/create-module.dto';
+import { UpdateModuleDto } from './dto/update-module.dto';
 import { QueryModuleDto } from './dto/query-module.dto';
 import { ModuleQueryResponseDto } from './dto/module-response.dto';
 import { ModuleDetailDto } from './dto/moduledetail-response.dto';
@@ -15,6 +17,63 @@ export class ModuleService {
     @InjectRepository(Module)
     private readonly moduleRepo: Repository<Module>,
   ) {}
+
+  async create(dto: CreateModuleDto): Promise<Module> {
+    const entity = this.moduleRepo.create({
+      name: dto.name,
+      shortDescription: dto.shortdescription,
+      description: dto.description,
+      studyCredit: dto.studycredit,
+      location: dto.location,
+      contactId: dto.contact_id,
+      level: dto.level,
+      learningOutcomes: dto.learningoutcomes,
+      moduleTags: dto.module_tags,
+      popularityScore: 0,
+      estimatedDifficulty: dto.estimated_difficulty,
+      availableSpots: dto.available_spots,
+      startDate: dto.start_date,
+    });
+
+    return this.moduleRepo.save(entity);
+  }
+
+  async update(id: number, dto: UpdateModuleDto): Promise<Module> {
+    const entity = await this.moduleRepo.findOne({ where: { id } });
+    if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+
+    Object.assign(entity, {
+      ...(dto.name !== undefined ? { name: dto.name } : {}),
+      ...(dto.shortdescription !== undefined
+        ? { shortDescription: dto.shortdescription }
+        : {}),
+      ...(dto.description !== undefined ? { description: dto.description } : {}),
+      ...(dto.studycredit !== undefined ? { studyCredit: dto.studycredit } : {}),
+      ...(dto.location !== undefined ? { location: dto.location } : {}),
+      ...(dto.contact_id !== undefined ? { contactId: dto.contact_id } : {}),
+      ...(dto.level !== undefined ? { level: dto.level } : {}),
+      ...(dto.learningoutcomes !== undefined
+        ? { learningOutcomes: dto.learningoutcomes }
+        : {}),
+      ...(dto.module_tags !== undefined ? { moduleTags: dto.module_tags } : {}),
+      ...(dto.estimated_difficulty !== undefined
+        ? { estimatedDifficulty: dto.estimated_difficulty }
+        : {}),
+      ...(dto.available_spots !== undefined
+        ? { availableSpots: dto.available_spots }
+        : {}),
+      ...(dto.start_date !== undefined ? { startDate: dto.start_date } : {}),
+    });
+
+    return this.moduleRepo.save(entity);
+  }
+
+  async remove(id: number): Promise<void> {
+    const entity = await this.moduleRepo.findOne({ where: { id } });
+    if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+
+    await this.moduleRepo.remove(entity);
+  }
 
   async findAll(
     query: QueryModuleDto,

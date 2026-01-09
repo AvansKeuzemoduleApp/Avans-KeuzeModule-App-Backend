@@ -1,7 +1,8 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { DataSource } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ProfileService } from '../profile/profile.service';
 import { RegisterDto } from './dto/register.dto';
@@ -19,12 +20,31 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly refreshTokens: RefreshTokensService,
         private readonly config: ConfigService,
+        private readonly dataSource: DataSource,
     ) {
         const v = this.config.get<string>('DUMMY_HASH');
         if (!v)
             throw new Error('DUMMY_HASH missing in environment');
 
         this.dummyHash = v;
+    }
+
+    private async assignRoleIfMissing(userId: string, roleName: 'student' | 'teacher'): Promise<void> {
+        // Role names are stored in DB table `roles.name`
+        const rows: Array<{ id: number }> = await this.dataSource.query(
+            `SELECT id FROM roles WHERE name = ? LIMIT 1`,
+            [roleName],
+        );
+
+        const roleId = rows?.[0]?.id;
+        if (!roleId) {
+            throw new Error(`Role '${roleName}' not found in roles table`);
+        }
+
+        await this.dataSource.query(
+            `INSERT IGNORE INTO user_roles (user_id, role_id) VALUES (?, ?)`,
+            [userId, roleId],
+        );
     }
 
     private normalizeEmail(email: string): string{
@@ -60,9 +80,20 @@ export class AuthService {
 
         if (user) {
             try {
+                await this.assignRoleIfMissing(user.id, 'student');
                 await this.profileService.ensureStudentProfileExists(user.id);
             } catch (error) {
-                this.logger.error(`Failed to create student profile during registration: ${error}`);
+                // Attempt rollback to avoid half-created accounts.
+                try {
+                    await this.dataSource.query(`DELETE FROM user_roles WHERE user_id = ?`, [user.id]);
+                    await this.dataSource.query(`DELETE FROM student_profiles WHERE user_id = ?`, [user.id]);
+                    await this.dataSource.query(`DELETE FROM users WHERE id = ?`, [user.id]);
+                } catch (rollbackError) {
+                    this.logger.error(`Registration rollback failed: ${rollbackError}`);
+                }
+
+                this.logger.error(`Registration post-create failed: ${error}`);
+                throw new InternalServerErrorException('Registration failed');
             }
         }
     }

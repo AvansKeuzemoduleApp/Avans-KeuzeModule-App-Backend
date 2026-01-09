@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { RefreshToken } from './tokens/refresh-token.entity';
 import { RefreshTokensService } from './tokens/refresh-tokens.service';
 import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 import { LoginProtectionService } from './login-protection/login-protection.service';
 
@@ -39,8 +40,9 @@ import { LoginProtectionService } from './login-protection/login-protection.serv
     ],
     controllers: [AuthController],
     providers: [AuthService, RefreshTokensService, JwtCookieAuthGuard, LoginProtectionService,
+        RolesGuard,
         { provide: APP_GUARD, useClass: JwtCookieAuthGuard },
     ],
-    exports: [JwtCookieAuthGuard],
+    exports: [JwtCookieAuthGuard, RolesGuard],
 })
 export class AuthModule { }
