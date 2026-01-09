@@ -23,8 +23,7 @@ export class ModuleAdminController {
     }
 
     @Delete(':id')
-    async remove(@Param('id', ParseIntPipe) id: number) {
-        await this.moduleService.remove(id);
-        return;
+    remove(@Param('id', ParseIntPipe) id: number) {
+        return this.moduleService.remove(id);
     }
 }

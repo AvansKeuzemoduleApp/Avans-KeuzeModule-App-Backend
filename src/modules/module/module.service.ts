@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { BadRequestException } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 import { Module } from './module.entity';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
@@ -13,12 +14,116 @@ const PAGE_SIZE = 10;
 
 @Injectable()
 export class ModuleService {
+  private contactReference:
+    | { tableName: string; columnName: string }
+    | null
+    | undefined;
+
   constructor(
     @InjectRepository(Module)
     private readonly moduleRepo: Repository<Module>,
+    private readonly dataSource: DataSource,
   ) {}
 
+  private isSafeIdentifier(value: string): boolean {
+    return /^[a-zA-Z0-9_]+$/.test(value);
+  }
+
+  private async resolveContactReference(): Promise<
+    { tableName: string; columnName: string } | null
+  > {
+    if (this.contactReference !== undefined) return this.contactReference;
+
+    const rows: Array<{ tableName: string; columnName: string }> =
+      await this.dataSource.query(
+        `
+        SELECT
+          REFERENCED_TABLE_NAME AS tableName,
+          REFERENCED_COLUMN_NAME AS columnName
+        FROM information_schema.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'module_information'
+          AND COLUMN_NAME = 'contact_id'
+          AND REFERENCED_TABLE_NAME IS NOT NULL
+        LIMIT 1
+      `,
+      );
+
+    const ref = rows?.[0];
+    if (!ref?.tableName || !ref?.columnName) {
+      const candidates = ['contacts', 'contact_information', 'module_contacts'];
+
+      for (const tableName of candidates) {
+        const exists: Array<{ tableName: string }> = await this.dataSource.query(
+          `
+            SELECT TABLE_NAME AS tableName
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = ?
+            LIMIT 1
+          `,
+          [tableName],
+        );
+
+        if (!exists?.[0]?.tableName) continue;
+
+        // Prefer id column if present.
+        const cols: Array<{ columnName: string }> = await this.dataSource.query(
+          `
+            SELECT COLUMN_NAME AS columnName
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = ?
+              AND COLUMN_NAME IN ('id', 'contact_id')
+            ORDER BY FIELD(COLUMN_NAME, 'id', 'contact_id')
+            LIMIT 1
+          `,
+          [tableName],
+        );
+
+        const columnName = cols?.[0]?.columnName;
+        if (!columnName) continue;
+
+        if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) continue;
+
+        this.contactReference = { tableName, columnName };
+        return this.contactReference;
+      }
+
+      this.contactReference = null;
+      return null;
+    }
+
+    const tableName = String(ref.tableName);
+    const columnName = String(ref.columnName);
+    if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) {
+      this.contactReference = null;
+      return null;
+    }
+
+    this.contactReference = { tableName, columnName };
+    return this.contactReference;
+  }
+
+  private async ensureContactExists(contactId: number): Promise<void> {
+    const ref = await this.resolveContactReference();
+    if (!ref) {
+      throw new BadRequestException('Invalid contact_id (contact reference not configured)');
+    }
+
+    const rows: Array<{ one: number }> = await this.dataSource.query(
+      `SELECT 1 AS one FROM \`${ref.tableName}\` WHERE \`${ref.columnName}\` = ? LIMIT 1`,
+      [contactId],
+    );
+
+    if (!rows || rows.length === 0) {
+      throw new BadRequestException('Invalid contact_id');
+    }
+  }
+
   async create(dto: CreateModuleDto): Promise<Module> {
+    await this.ensureContactExists(dto.contact_id);
+
     const entity = this.moduleRepo.create({
       name: dto.name,
       shortDescription: dto.shortdescription,
@@ -42,28 +147,40 @@ export class ModuleService {
     const entity = await this.moduleRepo.findOne({ where: { id } });
     if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
 
-    Object.assign(entity, {
-      ...(dto.name !== undefined ? { name: dto.name } : {}),
-      ...(dto.shortdescription !== undefined
-        ? { shortDescription: dto.shortdescription }
-        : {}),
-      ...(dto.description !== undefined ? { description: dto.description } : {}),
-      ...(dto.studycredit !== undefined ? { studyCredit: dto.studycredit } : {}),
-      ...(dto.location !== undefined ? { location: dto.location } : {}),
-      ...(dto.contact_id !== undefined ? { contactId: dto.contact_id } : {}),
-      ...(dto.level !== undefined ? { level: dto.level } : {}),
-      ...(dto.learningoutcomes !== undefined
-        ? { learningOutcomes: dto.learningoutcomes }
-        : {}),
-      ...(dto.module_tags !== undefined ? { moduleTags: dto.module_tags } : {}),
-      ...(dto.estimated_difficulty !== undefined
-        ? { estimatedDifficulty: dto.estimated_difficulty }
-        : {}),
-      ...(dto.available_spots !== undefined
-        ? { availableSpots: dto.available_spots }
-        : {}),
-      ...(dto.start_date !== undefined ? { startDate: dto.start_date } : {}),
-    });
+    if (dto.contact_id !== undefined) {
+      await this.ensureContactExists(dto.contact_id);
+    }
+
+    const updates: Partial<Module> = {};
+
+    const fieldMap: Array<
+      readonly [
+        keyof UpdateModuleDto,
+        keyof Module,
+      ]
+    > = [
+      ['name', 'name'],
+      ['shortdescription', 'shortDescription'],
+      ['description', 'description'],
+      ['studycredit', 'studyCredit'],
+      ['location', 'location'],
+      ['contact_id', 'contactId'],
+      ['level', 'level'],
+      ['learningoutcomes', 'learningOutcomes'],
+      ['module_tags', 'moduleTags'],
+      ['estimated_difficulty', 'estimatedDifficulty'],
+      ['available_spots', 'availableSpots'],
+      ['start_date', 'startDate'],
+    ];
+
+    for (const [dtoKey, entityKey] of fieldMap) {
+      const value = dto[dtoKey];
+      if (value !== undefined) {
+        (updates as any)[entityKey] = value;
+      }
+    }
+
+    Object.assign(entity, updates);
 
     return this.moduleRepo.save(entity);
   }

@@ -8,6 +8,8 @@ import { ProfileService } from '../profile/profile.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokensService } from './tokens/refresh-tokens.service';
+import { Role } from './roles/role.entity';
+import { UserRole } from './roles/user-role.entity';
 
 @Injectable()
 export class AuthService {
@@ -30,21 +32,26 @@ export class AuthService {
     }
 
     private async assignRoleIfMissing(userId: string, roleName: 'student' | 'teacher'): Promise<void> {
-        // Role names are stored in DB table `roles.name`
-        const rows: Array<{ id: number }> = await this.dataSource.query(
-            `SELECT id FROM roles WHERE name = ? LIMIT 1`,
-            [roleName],
-        );
+        const normalizedRoleName = roleName.toLowerCase() as typeof roleName;
 
-        const roleId = rows?.[0]?.id;
-        if (!roleId) {
-            throw new Error(`Role '${roleName}' not found in roles table`);
+        const roleRepo = this.dataSource.getRepository(Role);
+        const userRolesRepo = this.dataSource.getRepository(UserRole);
+
+        const role = await roleRepo.findOne({ where: { name: normalizedRoleName } });
+        if (!role) {
+            throw new Error(`Role '${normalizedRoleName}' not found in roles table`);
         }
 
-        await this.dataSource.query(
-            `INSERT IGNORE INTO user_roles (user_id, role_id) VALUES (?, ?)`,
-            [userId, roleId],
-        );
+        const existing = await userRolesRepo.findOne({ where: { userId, roleId: role.id } });
+        if (existing) return;
+
+        try {
+            await userRolesRepo.insert({ userId, roleId: role.id });
+        } catch (err) {
+            // Still handle races safely across DBs by ignoring unique violations.
+            if (this.isDuplicateKeyError(err)) return;
+            throw err;
+        }
     }
 
     private normalizeEmail(email: string): string{
@@ -56,8 +63,12 @@ export class AuthService {
         const code = err?.code;
         const erno = err?.errno;
         const sqlState = err?.sqlState;
+        const message = (err?.message ?? '') as string;
 
-        return code === 'ER_DUP_ENTRY' || erno === 1062 || sqlState === '23000';
+        // MySQL/MariaDB
+        if (code === 'ER_DUP_ENTRY' || erno === 1062 || sqlState === '23000') return true;
+
+        return false;
     }
 
     async register(dto: RegisterDto): Promise<void> {
@@ -85,9 +96,31 @@ export class AuthService {
             } catch (error) {
                 // Attempt rollback to avoid half-created accounts.
                 try {
-                    await this.dataSource.query(`DELETE FROM user_roles WHERE user_id = ?`, [user.id]);
-                    await this.dataSource.query(`DELETE FROM student_profiles WHERE user_id = ?`, [user.id]);
-                    await this.dataSource.query(`DELETE FROM users WHERE id = ?`, [user.id]);
+                    const queryRunner = this.dataSource.createQueryRunner();
+                    await queryRunner.connect();
+                    await queryRunner.startTransaction();
+
+                    try {
+                        await queryRunner.query(
+                            `DELETE FROM user_roles WHERE user_id = ?`,
+                            [user.id],
+                        );
+                        await queryRunner.query(
+                            `DELETE FROM student_profiles WHERE user_id = ?`,
+                            [user.id],
+                        );
+                        await queryRunner.query(
+                            `DELETE FROM users WHERE id = ?`,
+                            [user.id],
+                        );
+
+                        await queryRunner.commitTransaction();
+                    } catch (txError) {
+                        await queryRunner.rollbackTransaction();
+                        throw txError;
+                    } finally {
+                        await queryRunner.release();
+                    }
                 } catch (rollbackError) {
                     this.logger.error(`Registration rollback failed: ${rollbackError}`);
                 }

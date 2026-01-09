@@ -13,6 +13,8 @@ import { RefreshToken } from './tokens/refresh-token.entity';
 import { RefreshTokensService } from './tokens/refresh-tokens.service';
 import { JwtCookieAuthGuard } from './guards/jwt-cookie.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { Role } from './roles/role.entity';
+import { UserRole } from './roles/user-role.entity';
 
 import { LoginProtectionService } from './login-protection/login-protection.service';
 
@@ -20,7 +22,7 @@ import { LoginProtectionService } from './login-protection/login-protection.serv
     imports: [
         UsersModule,
         ProfileModule,
-        TypeOrmModule.forFeature([RefreshToken]),
+        TypeOrmModule.forFeature([RefreshToken, Role, UserRole]),
 
         JwtModule.registerAsync({
             imports: [ConfigModule],

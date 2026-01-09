@@ -1,7 +1,9 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { ROLES_KEY } from './roles.decorator';
+import { UserRole } from '../roles/user-role.entity';
 
 type RequestWithUser = Request & { user?: { sub?: string } };
 
@@ -9,7 +11,8 @@ type RequestWithUser = Request & { user?: { sub?: string } };
 export class RolesGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
-        private readonly dataSource: DataSource,
+        @InjectRepository(UserRole)
+        private readonly userRolesRepo: Repository<UserRole>,
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -36,21 +39,12 @@ export class RolesGuard implements CanActivate {
     if (!userId)
         throw new ForbiddenException('Missing user');
 
-    const rows: Array<{ name: string }> = await this.dataSource.query(
-    `
-        SELECT r.name
-        FROM user_roles ur
-        INNER JOIN roles r ON r.id = ur.role_id
-        WHERE ur.user_id = ?
-    `,
-        [userId],
-    );
-
+    const userRoles = await this.userRolesRepo.find({ where: { userId } });
     const userRoleNames = new Set(
-        (rows ?? [])
-            .map((r) => String(r?.name ?? '').trim().toLowerCase())
+        (userRoles ?? [])
+            .map((ur) => String(ur?.role?.name ?? '').trim().toLowerCase())
             .filter(Boolean),
-        );
+    );
 
     const allowed = normalizedRequired;
 

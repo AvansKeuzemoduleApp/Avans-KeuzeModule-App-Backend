@@ -1,4 +1,5 @@
 import { ArrayMaxSize, IsArray, IsDateString, IsInt, IsString, Length, Max, Min } from 'class-validator';
+import { IsNotPastDate } from './validators/is-not-past-date.validator';
 
 export class CreateModuleDto {
     @IsString()
@@ -48,5 +49,6 @@ export class CreateModuleDto {
     available_spots!: number;
 
     @IsDateString()
+    @IsNotPastDate()
     start_date!: string;
 }
