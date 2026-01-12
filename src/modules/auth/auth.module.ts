@@ -45,6 +45,6 @@ import { LoginProtectionService } from './login-protection/login-protection.serv
         RolesGuard,
         { provide: APP_GUARD, useClass: JwtCookieAuthGuard },
     ],
-    exports: [JwtCookieAuthGuard, RolesGuard],
+    exports: [JwtCookieAuthGuard, RolesGuard, JwtModule, UsersModule, TypeOrmModule],
 })
 export class AuthModule { }
