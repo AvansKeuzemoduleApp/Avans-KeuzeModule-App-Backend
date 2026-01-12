@@ -122,7 +122,7 @@ export class RecommendationService {
             await this.recommendationOrderRepo.save(orders);
         } catch (error) {
             console.error('Error saving recommendation orders:', error);
-            throw new BadRequestException(`Failed to save recommendations: ${error.message}`);
+            throw new BadRequestException('Failed to save recommendations');
         }
 
         // Reload cache with relations
