@@ -18,7 +18,7 @@ export class ModuleController {
 
     @Get()
     async findAll(@Req() req: RequestWithUser, @Query() query: QueryModuleDto) {
-        const userId = req.user?.sub;
+        const userId = req.user!.sub;
 
         return this.moduleService.findAll(query, userId);
     }
