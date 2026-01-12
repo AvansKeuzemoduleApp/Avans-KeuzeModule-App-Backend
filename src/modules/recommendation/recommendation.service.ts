@@ -114,7 +114,7 @@ export class RecommendationService {
             this.recommendationOrderRepo.create({
                 recommendationCacheId: cache.id,
                 moduleInformationId: moduleId,
-                recommendationOrder: index,
+                recommendationOrder: index + 1,
             }),
         );
 
