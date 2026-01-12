@@ -7,6 +7,7 @@ export class ModuleFilters {
     sortBy?: FilterOption[];
     level: FilterOption[];
     locations: FilterOption[];
+    showFavourites: boolean;
 }
 
 export class ModuleQueryResponseDto<T = unknown> {

@@ -9,6 +9,7 @@ import { RecommendationResponseDto } from './dto/recommendation-response.dto';
 import { templateResonse } from './dto/template-fastapi-response';
 import { ModuleResponseItemDto } from '../module/dto/module-response.dto';
 import { defaultModuleFilters } from '../module/dto/module-filters';
+import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
 
 @Injectable()
 export class RecommendationService {
@@ -28,7 +29,7 @@ export class RecommendationService {
      * Checks student profile, looks for a valid cached recommendation,
      * otherwise returns template data.
      */
-    async getRecommendationsForUser(userId: string): Promise<RecommendationResponseDto<ModuleResponseItemDto>> {
+    async getRecommendationsForUser(query: QueryRecommendationsDto, userId: string): Promise<RecommendationResponseDto<ModuleResponseItemDto>> {
         // Get student profile
         const profile = await this.profileService.ensureStudentProfileExists(userId);
 
@@ -143,14 +144,16 @@ export class RecommendationService {
 
         // TODO: apply pagination
 
-        return {
+        const responseObject = {
             modelVersion: cache.modelVersion,
             createdAt: cache.createdAt,
             page: 1,
             pages: 1,
             data: modules,
-            filters: defaultModuleFilters,
-        };
+            filters: defaultModuleFilters
+        }
+        responseObject.filters.showFavourites = true;
+        return responseObject;
     }
 
 

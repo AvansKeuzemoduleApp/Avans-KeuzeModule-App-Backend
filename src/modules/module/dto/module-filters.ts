@@ -33,6 +33,7 @@ export const defaultModuleFilters: ModuleFilters = {
             key: 'all',
         },
     ],
+    showFavourites: false
 }
 
 export const defaultSortableModuleFilters = structuredClone(defaultModuleFilters)

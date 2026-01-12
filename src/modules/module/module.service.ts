@@ -287,13 +287,14 @@ export class ModuleService {
         const results = await queryBuilder.getRawMany();
 
         const data = results.map((result) => ModuleMapper.toResponseItemDto(result));
-
-        return {
+        const responseObject = {
             page: currentPage,
             pages: totalPages,
             data,
             filters: defaultSortableModuleFilters
-        };
+        }
+        responseObject.filters.showFavourites = false;
+        return responseObject;
     }
 
     async findOne(
