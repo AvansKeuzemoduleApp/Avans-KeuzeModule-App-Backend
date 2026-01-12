@@ -170,7 +170,7 @@ export class RecommendationService {
             available_spots: order.moduleInformation.availableSpots,
             start_date: order.moduleInformation.startDate,
             isFavourite: favouriteModuleIds.has(order.moduleInformation.id),
-            explenation: "Not implemented yet."
+            explanation: "Not implemented yet."
         }));
 
         // Apply filters

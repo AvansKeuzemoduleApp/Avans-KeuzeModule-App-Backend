@@ -25,5 +25,5 @@ export class RecommendedResponseItemDto {
     available_spots: number;
     start_date: string;
     isFavourite: boolean;
-    explenation: string;
+    explanation: string;
 }
