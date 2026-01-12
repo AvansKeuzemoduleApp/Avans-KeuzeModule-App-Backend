@@ -14,30 +14,29 @@ const PAGE_SIZE = 10;
 
 @Injectable()
 export class ModuleService {
-<<<< 
-  private contactReference:
-    | { tableName: string; columnName: string }
-    | null
-    | undefined;
+    private contactReference:
+        | { tableName: string; columnName: string }
+        | null
+        | undefined;
 
-  constructor(
-    @InjectRepository(Module)
-    private readonly moduleRepo: Repository<Module>,
-    private readonly dataSource: DataSource,
-  ) {}
+    constructor(
+        @InjectRepository(Module)
+        private readonly moduleRepo: Repository<Module>,
+        private readonly dataSource: DataSource,
+    ) { }
 
-  private isSafeIdentifier(value: string): boolean {
-    return /^[a-zA-Z0-9_]+$/.test(value);
-  }
+    private isSafeIdentifier(value: string): boolean {
+        return /^[a-zA-Z0-9_]+$/.test(value);
+    }
 
-  private async resolveContactReference(): Promise<
-    { tableName: string; columnName: string } | null
-  > {
-    if (this.contactReference !== undefined) return this.contactReference;
+    private async resolveContactReference(): Promise<
+        { tableName: string; columnName: string } | null
+    > {
+        if (this.contactReference !== undefined) return this.contactReference;
 
-    const rows: Array<{ tableName: string; columnName: string }> =
-      await this.dataSource.query(
-        `
+        const rows: Array<{ tableName: string; columnName: string }> =
+            await this.dataSource.query(
+                `
         SELECT
           REFERENCED_TABLE_NAME AS tableName,
           REFERENCED_COLUMN_NAME AS columnName
@@ -48,29 +47,29 @@ export class ModuleService {
           AND REFERENCED_TABLE_NAME IS NOT NULL
         LIMIT 1
       `,
-      );
+            );
 
-    const ref = rows?.[0];
-    if (!ref?.tableName || !ref?.columnName) {
-      const candidates = ['contacts', 'contact_information', 'module_contacts'];
+        const ref = rows?.[0];
+        if (!ref?.tableName || !ref?.columnName) {
+            const candidates = ['contacts', 'contact_information', 'module_contacts'];
 
-      for (const tableName of candidates) {
-        const exists: Array<{ tableName: string }> = await this.dataSource.query(
-          `
+            for (const tableName of candidates) {
+                const exists: Array<{ tableName: string }> = await this.dataSource.query(
+                    `
             SELECT TABLE_NAME AS tableName
             FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME = ?
             LIMIT 1
           `,
-          [tableName],
-        );
+                    [tableName],
+                );
 
-        if (!exists?.[0]?.tableName) continue;
+                if (!exists?.[0]?.tableName) continue;
 
-        // Prefer id column if present.
-        const cols: Array<{ columnName: string }> = await this.dataSource.query(
-          `
+                // Prefer id column if present.
+                const cols: Array<{ columnName: string }> = await this.dataSource.query(
+                    `
             SELECT COLUMN_NAME AS columnName
             FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE()
@@ -79,148 +78,119 @@ export class ModuleService {
             ORDER BY FIELD(COLUMN_NAME, 'id', 'contact_id')
             LIMIT 1
           `,
-          [tableName],
-        );
+                    [tableName],
+                );
 
-        const columnName = cols?.[0]?.columnName;
-        if (!columnName) continue;
+                const columnName = cols?.[0]?.columnName;
+                if (!columnName) continue;
 
-        if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) continue;
+                if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) continue;
+
+                this.contactReference = { tableName, columnName };
+                return this.contactReference;
+            }
+
+            this.contactReference = null;
+            return null;
+        }
+
+        const tableName = String(ref.tableName);
+        const columnName = String(ref.columnName);
+        if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) {
+            this.contactReference = null;
+            return null;
+        }
 
         this.contactReference = { tableName, columnName };
         return this.contactReference;
-      }
-
-      this.contactReference = null;
-      return null;
     }
 
-    const tableName = String(ref.tableName);
-    const columnName = String(ref.columnName);
-    if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) {
-      this.contactReference = null;
-      return null;
-    }
+    private async ensureContactExists(contactId: number): Promise<void> {
+        const ref = await this.resolveContactReference();
+        if (!ref) {
+            throw new BadRequestException('Invalid contact_id (contact reference not configured)');
+        }
 
-    this.contactReference = { tableName, columnName };
-    return this.contactReference;
-  }
-
-  private async ensureContactExists(contactId: number): Promise<void> {
-    const ref = await this.resolveContactReference();
-    if (!ref) {
-      throw new BadRequestException('Invalid contact_id (contact reference not configured)');
-    }
-
-    const rows: Array<{ one: number }> = await this.dataSource.query(
-      `SELECT 1 AS one FROM \`${ref.tableName}\` WHERE \`${ref.columnName}\` = ? LIMIT 1`,
-      [contactId],
-    );
-
-    if (!rows || rows.length === 0) {
-      throw new BadRequestException('Invalid contact_id');
-    }
-  }
-
-  async create(dto: CreateModuleDto): Promise<Module> {
-    await this.ensureContactExists(dto.contact_id);
-
-    const entity = this.moduleRepo.create({
-      name: dto.name,
-      shortDescription: dto.shortdescription,
-      description: dto.description,
-      studyCredit: dto.studycredit,
-      location: dto.location,
-      contactId: dto.contact_id,
-      level: dto.level,
-      learningOutcomes: dto.learningoutcomes,
-      moduleTags: dto.module_tags,
-      popularityScore: 0,
-      estimatedDifficulty: dto.estimated_difficulty,
-      availableSpots: dto.available_spots,
-      startDate: dto.start_date,
-    });
-
-    return this.moduleRepo.save(entity);
-  }
-
-  async update(id: number, dto: UpdateModuleDto): Promise<Module> {
-    const entity = await this.moduleRepo.findOne({ where: { id } });
-    if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
-
-    if (dto.contact_id !== undefined) {
-      await this.ensureContactExists(dto.contact_id);
-    }
-
-    const updates: Partial<Module> = {};
-
-    const fieldMap: Array<
-      readonly [
-        keyof UpdateModuleDto,
-        keyof Module,
-      ]
-    > = [
-      ['name', 'name'],
-      ['shortdescription', 'shortDescription'],
-      ['description', 'description'],
-      ['studycredit', 'studyCredit'],
-      ['location', 'location'],
-      ['contact_id', 'contactId'],
-      ['level', 'level'],
-      ['learningoutcomes', 'learningOutcomes'],
-      ['module_tags', 'moduleTags'],
-      ['estimated_difficulty', 'estimatedDifficulty'],
-      ['available_spots', 'availableSpots'],
-      ['start_date', 'startDate'],
-    ];
-
-    for (const [dtoKey, entityKey] of fieldMap) {
-      const value = dto[dtoKey];
-      if (value !== undefined) {
-        (updates as any)[entityKey] = value;
-      }
-    }
-
-    Object.assign(entity, updates);
-
-    return this.moduleRepo.save(entity);
-  }
-
-  async remove(id: number): Promise<void> {
-    const entity = await this.moduleRepo.findOne({ where: { id } });
-    if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
-
-    await this.moduleRepo.remove(entity);
-  }
-
-  async findAll(
-    query: QueryModuleDto,
-    user: string | undefined,
-  ): Promise<ModuleQueryResponseDto> {
-    const queryBuilder = this.moduleRepo
-      .createQueryBuilder('module')
-      .select('module');
-
-    // Add isFavourite flag and join student_favourites only when user is provided
-    if (user) {
-      queryBuilder
-        .addSelect(
-          'CASE WHEN sf.student_id IS NOT NULL THEN true ELSE false END',
-          'isFavourite',
-        )
-        .leftJoin(
-          'student_favourites',
-          'sf',
-          'sf.module_id = module.id AND sf.student_id = :userId',
-          { userId: user },
+        const rows: Array<{ one: number }> = await this.dataSource.query(
+            `SELECT 1 AS one FROM \`${ref.tableName}\` WHERE \`${ref.columnName}\` = ? LIMIT 1`,
+            [contactId],
         );
-    } else {
-      queryBuilder.addSelect('false', 'isFavourite');
-=======
-    constructor(
-        @InjectRepository(Module)
-        private readonly moduleRepo: Repository<Module>,
-    ) { }
+
+        if (!rows || rows.length === 0) {
+            throw new BadRequestException('Invalid contact_id');
+        }
+    }
+
+    async create(dto: CreateModuleDto): Promise<Module> {
+        await this.ensureContactExists(dto.contact_id);
+
+        const entity = this.moduleRepo.create({
+            name: dto.name,
+            shortDescription: dto.shortdescription,
+            description: dto.description,
+            studyCredit: dto.studycredit,
+            location: dto.location,
+            contactId: dto.contact_id,
+            level: dto.level,
+            learningOutcomes: dto.learningoutcomes,
+            moduleTags: dto.module_tags,
+            popularityScore: 0,
+            estimatedDifficulty: dto.estimated_difficulty,
+            availableSpots: dto.available_spots,
+            startDate: dto.start_date,
+        });
+
+        return this.moduleRepo.save(entity);
+    }
+
+    async update(id: number, dto: UpdateModuleDto): Promise<Module> {
+        const entity = await this.moduleRepo.findOne({ where: { id } });
+        if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+
+        if (dto.contact_id !== undefined) {
+            await this.ensureContactExists(dto.contact_id);
+        }
+
+        const updates: Partial<Module> = {};
+
+        const fieldMap: Array<
+            readonly [
+                keyof UpdateModuleDto,
+                keyof Module,
+            ]
+        > = [
+                ['name', 'name'],
+                ['shortdescription', 'shortDescription'],
+                ['description', 'description'],
+                ['studycredit', 'studyCredit'],
+                ['location', 'location'],
+                ['contact_id', 'contactId'],
+                ['level', 'level'],
+                ['learningoutcomes', 'learningOutcomes'],
+                ['module_tags', 'moduleTags'],
+                ['estimated_difficulty', 'estimatedDifficulty'],
+                ['available_spots', 'availableSpots'],
+                ['start_date', 'startDate'],
+            ];
+
+        for (const [dtoKey, entityKey] of fieldMap) {
+            const value = dto[dtoKey];
+            if (value !== undefined) {
+                (updates as any)[entityKey] = value;
+            }
+        }
+
+        Object.assign(entity, updates);
+
+        return this.moduleRepo.save(entity);
+    }
+
+    async remove(id: number): Promise<void> {
+        const entity = await this.moduleRepo.findOne({ where: { id } });
+        if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+
+        await this.moduleRepo.remove(entity);
+    }
 
     async findAll(
         query: QueryModuleDto,
@@ -245,187 +215,216 @@ export class ModuleService {
                 );
         } else {
             queryBuilder.addSelect('false', 'isFavourite');
-        }
+
+            constructor(
+                @InjectRepository(Module)
+                private readonly moduleRepo: Repository<Module>,
+            ) { }
+
+    async findAll(
+                query: QueryModuleDto,
+                user: string | undefined,
+            ): Promise < ModuleQueryResponseDto > {
+                const queryBuilder = this.moduleRepo
+                    .createQueryBuilder('module')
+                    .select('module');
+
+                // Add isFavourite flag and join student_favourites only when user is provided
+                if(user) {
+                    queryBuilder
+                        .addSelect(
+                            'CASE WHEN sf.student_id IS NOT NULL THEN true ELSE false END',
+                            'isFavourite',
+                        )
+                        .leftJoin(
+                            'student_favourites',
+                            'sf',
+                            'sf.module_id = module.id AND sf.student_id = :userId',
+                            { userId: user },
+                        );
+                } else {
+                    queryBuilder.addSelect('false', 'isFavourite');
+                }
 
         // Filter by favourites only if requested
-        if (query.favourites && user) {
-            queryBuilder.andWhere('sf.student_id IS NOT NULL');
+        if(query.favourites && user) {
+                queryBuilder.andWhere('sf.student_id IS NOT NULL');
+            }
+
+            // Filter by search term in name or description or learningoutcomes or module_tags
+            if (query.search) {
+                queryBuilder.andWhere(
+                    '(module.name LIKE :search OR module.description LIKE :search OR module.learningoutcomes LIKE :search OR module.module_tags LIKE :search)',
+                    { search: `%${query.search}%` },
+                );
+            }
+
+            if (query.location && query.location !== 'all') {
+                queryBuilder.andWhere('module.location LIKE :location', {
+                    location: `%${query.location}%`,
+                });
+            }
+
+            if (query.level && query.level !== 'all') {
+                queryBuilder.andWhere('module.level LIKE :level', {
+                    level: `%${query.level}%`,
+                });
+            }
+
+            // Apply sorting
+            const sortBy = query.sortBy || 'popularity';
+            switch (sortBy) {
+                case 'popularity':
+                    queryBuilder.orderBy('module.popularity_score', 'DESC');
+                    break;
+                case 'popularity_asc':
+                    queryBuilder.orderBy('module.popularity_score', 'ASC');
+                    break;
+                case 'difficulty':
+                    queryBuilder.orderBy('module.estimated_difficulty', 'ASC');
+                    break;
+                case 'difficulty_desc':
+                    queryBuilder.orderBy('module.estimated_difficulty', 'DESC');
+                    break;
+                case 'name':
+                    queryBuilder.orderBy('module.name', 'ASC');
+                    break;
+                case 'name_desc':
+                    queryBuilder.orderBy('module.name', 'DESC');
+                    break;
+                case 'start_date':
+                    queryBuilder.orderBy('module.start_date', 'ASC');
+                    break;
+                case 'start_date_desc':
+                    queryBuilder.orderBy('module.start_date', 'DESC');
+                    break;
+                default:
+                    queryBuilder.orderBy('module.popularity_score', 'DESC');
+            }
+
+            const totalCount = await queryBuilder.getCount();
+            const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+            let currentPage = query.page || 1;
+            if (currentPage > totalPages) {
+                currentPage = 1;
+            }
+
+            // Apply pagination with offset and limit
+            queryBuilder.offset((currentPage - 1) * PAGE_SIZE).limit(PAGE_SIZE);
+
+            const results = await queryBuilder.getRawMany();
+
+            const data = results.map((result) => ModuleMapper.toResponseItemDto(result));
+
+            return {
+                page: currentPage,
+                pages: totalPages,
+                data,
+                filters: {
+                    sortBy: [ // TODO: Put this hardcoded ess in a file where i can reference it
+                        {
+                            name: 'Populariteit ▼',
+                            key: 'popularity',
+                        },
+                        {
+                            name: 'Populariteit ▲',
+                            key: 'popularity_asc',
+                        },
+                        {
+                            name: 'Moeilijkheidsgraad ▲',
+                            key: 'difficulty',
+                        },
+                        {
+                            name: 'Moeilijkheidsgraad ▼',
+                            key: 'difficulty_desc',
+                        },
+                        {
+                            name: 'Naam (A-Z)',
+                            key: 'name',
+                        },
+                        {
+                            name: 'Naam (Z-A)',
+                            key: 'name_desc',
+                        },
+                        {
+                            name: 'Startdatum ▲',
+                            key: 'start_date',
+                        },
+                        {
+                            name: 'Startdatum ▼',
+                            key: 'start_date_desc',
+                        },
+                    ],
+                    level: [
+                        {
+                            name: 'NLQF5',
+                            key: 'NLQF5',
+                        },
+                        {
+                            name: 'NLQF6',
+                            key: 'NLQF6',
+                        },
+                        {
+                            name: 'Alle niveaus',
+                            key: 'all',
+                        },
+                    ],
+                    locations: [
+                        {
+                            name: 'Breda',
+                            key: 'breda',
+                        },
+                        {
+                            name: 'Tilburg',
+                            key: 'tilburg',
+                        },
+                        {
+                            name: 'Den Bosch',
+                            key: 'den bosch',
+                        },
+                        {
+                            name: 'Alle locaties',
+                            key: 'all',
+                        },
+                    ],
+                },
+            };
+
         }
-
-        // Filter by search term in name or description or learningoutcomes or module_tags
-        if (query.search) {
-            queryBuilder.andWhere(
-                '(module.name LIKE :search OR module.description LIKE :search OR module.learningoutcomes LIKE :search OR module.module_tags LIKE :search)',
-                { search: `%${query.search}%` },
-            );
-        }
-
-        if (query.location && query.location !== 'all') {
-            queryBuilder.andWhere('module.location LIKE :location', {
-                location: `%${query.location}%`,
-            });
-        }
-
-        if (query.level && query.level !== 'all') {
-            queryBuilder.andWhere('module.level LIKE :level', {
-                level: `%${query.level}%`,
-            });
-        }
-
-        // Apply sorting
-        const sortBy = query.sortBy || 'popularity';
-        switch (sortBy) {
-            case 'popularity':
-                queryBuilder.orderBy('module.popularity_score', 'DESC');
-                break;
-            case 'popularity_asc':
-                queryBuilder.orderBy('module.popularity_score', 'ASC');
-                break;
-            case 'difficulty':
-                queryBuilder.orderBy('module.estimated_difficulty', 'ASC');
-                break;
-            case 'difficulty_desc':
-                queryBuilder.orderBy('module.estimated_difficulty', 'DESC');
-                break;
-            case 'name':
-                queryBuilder.orderBy('module.name', 'ASC');
-                break;
-            case 'name_desc':
-                queryBuilder.orderBy('module.name', 'DESC');
-                break;
-            case 'start_date':
-                queryBuilder.orderBy('module.start_date', 'ASC');
-                break;
-            case 'start_date_desc':
-                queryBuilder.orderBy('module.start_date', 'DESC');
-                break;
-            default:
-                queryBuilder.orderBy('module.popularity_score', 'DESC');
-        }
-
-        const totalCount = await queryBuilder.getCount();
-        const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-        let currentPage = query.page || 1;
-        if (currentPage > totalPages) {
-            currentPage = 1;
-        }
-
-        // Apply pagination with offset and limit
-        queryBuilder.offset((currentPage - 1) * PAGE_SIZE).limit(PAGE_SIZE);
-
-        const results = await queryBuilder.getRawMany();
-
-        const data = results.map((result) => ModuleMapper.toResponseItemDto(result));
-
-        return {
-            page: currentPage,
-            pages: totalPages,
-            data,
-            filters: {
-                sortBy: [ // TODO: Put this hardcoded ess in a file where i can reference it
-                    {
-                        name: 'Populariteit ▼',
-                        key: 'popularity',
-                    },
-                    {
-                        name: 'Populariteit ▲',
-                        key: 'popularity_asc',
-                    },
-                    {
-                        name: 'Moeilijkheidsgraad ▲',
-                        key: 'difficulty',
-                    },
-                    {
-                        name: 'Moeilijkheidsgraad ▼',
-                        key: 'difficulty_desc',
-                    },
-                    {
-                        name: 'Naam (A-Z)',
-                        key: 'name',
-                    },
-                    {
-                        name: 'Naam (Z-A)',
-                        key: 'name_desc',
-                    },
-                    {
-                        name: 'Startdatum ▲',
-                        key: 'start_date',
-                    },
-                    {
-                        name: 'Startdatum ▼',
-                        key: 'start_date_desc',
-                    },
-                ],
-                level: [
-                    {
-                        name: 'NLQF5',
-                        key: 'NLQF5',
-                    },
-                    {
-                        name: 'NLQF6',
-                        key: 'NLQF6',
-                    },
-                    {
-                        name: 'Alle niveaus',
-                        key: 'all',
-                    },
-                ],
-                locations: [
-                    {
-                        name: 'Breda',
-                        key: 'breda',
-                    },
-                    {
-                        name: 'Tilburg',
-                        key: 'tilburg',
-                    },
-                    {
-                        name: 'Den Bosch',
-                        key: 'den bosch',
-                    },
-                    {
-                        name: 'Alle locaties',
-                        key: 'all',
-                    },
-                ],
-            },
-        };
->>>>>
-    }
 
     async findOne(
-        id: number,
-        user: string | undefined,
-    ): Promise<ModuleDetailDto> {
-        const queryBuilder = this.moduleRepo
-            .createQueryBuilder('module')
-            .select('module');
-        // Add isFavourite flag and join student_favourites only when userId is provided
+            id: number,
+            user: string | undefined,
+        ): Promise < ModuleDetailDto > {
+            const queryBuilder = this.moduleRepo
+                .createQueryBuilder('module')
+                .select('module');
+            // Add isFavourite flag and join student_favourites only when userId is provided
 
-        if (user) {
-            queryBuilder
-                .addSelect(
-                    'CASE WHEN sf.student_id IS NOT NULL THEN true ELSE false END',
-                    'isFavourite',
-                )
-                .leftJoin(
-                    'student_favourites',
-                    'sf',
-                    'sf.module_id = module.id AND sf.student_id = :userId',
-                    { userId: user },
-                );
-        } else {
-            queryBuilder.addSelect('false', 'isFavourite');
-        }
+            if(user) {
+                queryBuilder
+                    .addSelect(
+                        'CASE WHEN sf.student_id IS NOT NULL THEN true ELSE false END',
+                        'isFavourite',
+                    )
+                    .leftJoin(
+                        'student_favourites',
+                        'sf',
+                        'sf.module_id = module.id AND sf.student_id = :userId',
+                        { userId: user },
+                    );
+            } else {
+                queryBuilder.addSelect('false', 'isFavourite');
+            }
 
         const result = await queryBuilder
-            .where('module.id = :id', { id })
-            .getRawOne();
+                .where('module.id = :id', { id })
+                .getRawOne();
 
-        if (!result) {
-            throw new NotFoundException(`Module with ID ${id} not found`);
-        }
+            if(!result) {
+                throw new NotFoundException(`Module with ID ${id} not found`);
+            }
 
         return ModuleMapper.toDetailDto(result);
+        }
     }
-}
