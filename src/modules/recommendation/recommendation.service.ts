@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, In } from 'typeorm';
+import { Repository, LessThan, In, Or, IsNull, MoreThan } from 'typeorm';
 import { Module } from '../module/module.entity';
 import { RecommendationCache } from './recommendation-cache.entity';
 import { RecommendationOrder } from './recommendation-order.entity';
@@ -67,7 +67,7 @@ export class RecommendationService {
                 interests: interests,
                 merits: merits,
                 goals: goals,
-                // TODO: expiresAt is either null (never expires) or greater than now
+                expiresAt: Or(IsNull(), MoreThan(now)),
             },
             relations: ['recommendationOrders', 'recommendationOrders.moduleInformation'],
         });
