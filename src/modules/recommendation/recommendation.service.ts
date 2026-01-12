@@ -10,6 +10,9 @@ import { templateResonse } from './dto/template-fastapi-response';
 import { ModuleResponseItemDto } from '../module/dto/module-response.dto';
 import { defaultModuleFilters } from '../module/dto/module-filters';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
+import { StudentFavourite } from '../student-favourite/student-favourite.entity';
+
+const PAGE_SIZE = 10;
 
 @Injectable()
 export class RecommendationService {
@@ -20,6 +23,8 @@ export class RecommendationService {
         private readonly recommendationOrderRepo: Repository<RecommendationOrder>,
         @InjectRepository(Module)
         private readonly moduleRepo: Repository<Module>,
+        @InjectRepository(StudentFavourite)
+        private readonly studentFavouriteRepo: Repository<StudentFavourite>,
         private readonly profileService: ProfileService,
     ) { }
 
@@ -57,7 +62,7 @@ export class RecommendationService {
 
         // Check if cache is valid (not expired)
         if (cachedRecommendation && (!cachedRecommendation.expiresAt || cachedRecommendation.expiresAt > now)) {
-            return this.formatRecommendationResponse(cachedRecommendation);
+            return this.formatRecommendationResponse(cachedRecommendation, query, userId);
         }
 
         // TODO: run api request to the FastAPI
@@ -116,15 +121,26 @@ export class RecommendationService {
             throw new BadRequestException('Failed to create recommendation cache');
         }
 
-        return this.formatRecommendationResponse(savedCache);
+        return this.formatRecommendationResponse(savedCache, query, userId);
     }
 
-    private formatRecommendationResponse(cache: RecommendationCache): RecommendationResponseDto<ModuleResponseItemDto> {
+    private async formatRecommendationResponse(
+        cache: RecommendationCache,
+        query: QueryRecommendationsDto,
+        userId: string,
+    ): Promise<RecommendationResponseDto<ModuleResponseItemDto>> {
         const sortedOrders = cache.recommendationOrders.sort(
             (a, b) => a.recommendationOrder - b.recommendationOrder,
         );
 
-        const modules: ModuleResponseItemDto[] = sortedOrders.map((order) => ({
+        // Get user's favourites
+        const favourites = await this.studentFavouriteRepo.find({
+            where: { studentId: userId },
+        });
+        const favouriteModuleIds = new Set(favourites.map((f) => f.moduleId));
+
+        // Map modules and add isFavourite flag
+        let modules: ModuleResponseItemDto[] = sortedOrders.map((order) => ({
             id: order.moduleInformation.id,
             name: order.moduleInformation.name,
             shortdescription: order.moduleInformation.shortDescription,
@@ -139,22 +155,58 @@ export class RecommendationService {
             estimated_difficulty: order.moduleInformation.estimatedDifficulty,
             available_spots: order.moduleInformation.availableSpots,
             start_date: order.moduleInformation.startDate,
-            isFavourite: false, // TODO: add favourites data
+            isFavourite: favouriteModuleIds.has(order.moduleInformation.id),
         }));
 
-        // TODO: apply pagination
+        // Apply filters
+        if (query.favourites) {
+            modules = modules.filter((m) => m.isFavourite);
+        }
+
+        if (query.search) {
+            const searchLower = query.search.toLowerCase();
+            modules = modules.filter(
+                (m) =>
+                    m.name.toLowerCase().includes(searchLower) ||
+                    m.description.toLowerCase().includes(searchLower) ||
+                    m.learningoutcomes.toLowerCase().includes(searchLower) ||
+                    (Array.isArray(m.module_tags) ? m.module_tags.join(' ') : m.module_tags).toLowerCase().includes(searchLower),
+            );
+        }
+
+        if (query.location && query.location !== 'all') {
+            modules = modules.filter((m) =>
+                m.location.toLowerCase().includes(query.location!.toLowerCase()),
+            );
+        }
+
+        if (query.level && query.level !== 'all') {
+            modules = modules.filter((m) =>
+                m.level.toLowerCase().includes(query.level!.toLowerCase()),
+            );
+        }
+
+        // Apply pagination
+        const totalCount = modules.length;
+        const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+        let currentPage = query.page || 1;
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = 1;
+        }
+
+        const startIndex = (currentPage - 1) * PAGE_SIZE;
+        const endIndex = startIndex + PAGE_SIZE;
+        const paginatedModules = modules.slice(startIndex, endIndex);
 
         const responseObject = {
             modelVersion: cache.modelVersion,
             createdAt: cache.createdAt,
-            page: 1,
-            pages: 1,
-            data: modules,
-            filters: defaultModuleFilters
-        }
+            page: currentPage,
+            pages: totalPages,
+            data: paginatedModules,
+            filters: defaultModuleFilters,
+        };
         responseObject.filters.showFavourites = true;
         return responseObject;
     }
-
-
 }

@@ -6,10 +6,11 @@ import { RecommendationCache } from './recommendation-cache.entity';
 import { RecommendationOrder } from './recommendation-order.entity';
 import { ProfileModule } from '../profile/profile.module';
 import { Module as ModuleEntity } from '../module/module.entity';
+import { StudentFavourite } from '../student-favourite/student-favourite.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([RecommendationCache, RecommendationOrder, ModuleEntity]),
+        TypeOrmModule.forFeature([RecommendationCache, RecommendationOrder, ModuleEntity, StudentFavourite]),
         ProfileModule,
     ],
     providers: [RecommendationService],
