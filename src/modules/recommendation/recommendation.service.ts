@@ -66,6 +66,8 @@ export class RecommendationService {
         }
 
         // TODO: run api request to the FastAPI
+        // this can only be doen once we have the fastAPI
+        // we need to update the db to have the reason of the recommendation.
         const response = templateResonse;
 
         // Fetch modules by IDs, skipping any that don't exist
