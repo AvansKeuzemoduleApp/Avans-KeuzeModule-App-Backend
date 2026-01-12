@@ -1,4 +1,4 @@
-import { registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
+import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
 
 function containsHtmlTag(value: string): boolean {
     return /<\s*\/?\s*[a-zA-Z][^>]*>/.test(value);
