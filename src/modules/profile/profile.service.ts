@@ -72,8 +72,6 @@ export class ProfileService {
             interests: this.undefinedToNull(profile.interests),
             merits: this.undefinedToNull(profile.merits),
             goals: this.undefinedToNull(profile.goals),
-            preferred_location: this.undefinedToNull(profile.preferredLocation),
-            preferred_studycredits: this.undefinedToNull(profile.preferredStudyCredits)
         };
     }
 
@@ -94,8 +92,6 @@ export class ProfileService {
             interests: this.undefinedToNull(profile.interests),
             merits: this.undefinedToNull(profile.merits),
             goals: this.undefinedToNull(profile.goals),
-            preferredLocation: this.undefinedToNull(profile.preferredLocation),
-            preferredStudyCredits: this.undefinedToNull(profile.preferredStudyCredits),
         };
 
         return response;

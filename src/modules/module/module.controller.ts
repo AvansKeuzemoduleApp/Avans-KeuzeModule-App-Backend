@@ -1,10 +1,10 @@
 import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Req,
+    Controller,
+    Get,
+    Param,
+    ParseIntPipe,
+    Query,
+    Req,
 } from '@nestjs/common';
 import { ModuleService } from './module.service';
 import { Public } from '../auth/guards/public.decorator';
@@ -14,30 +14,22 @@ type RequestWithUser = Request & { user?: { sub: string } };
 
 @Controller('modules')
 export class ModuleController {
-  constructor(private readonly moduleService: ModuleService) {}
+    constructor(private readonly moduleService: ModuleService) { }
 
-  @Public()
-  @Get()
-  async findAll(@Req() req: RequestWithUser, @Query() query: QueryModuleDto) {
-    const userId = req.user?.sub;
+    @Get()
+    async findAll(@Req() req: RequestWithUser, @Query() query: QueryModuleDto) {
+        const userId = req.user!.sub;
 
-    if (!userId) {
-      return this.moduleService.findAll(
-        { ...query, favourites: false },
-        undefined,
-      );
+        return this.moduleService.findAll(query, userId);
     }
 
-    return this.moduleService.findAll(query, userId);
-  }
-
-  @Public()
-  @Get(':id')
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user?.sub;
-    return this.moduleService.findOne(id, userId);
-  }
+    @Public()
+    @Get(':id')
+    async findOne(
+        @Param('id', ParseIntPipe) id: number,
+        @Req() req: RequestWithUser,
+    ) {
+        const userId = req.user?.sub;
+        return this.moduleService.findOne(id, userId);
+    }
 }
