@@ -7,6 +7,7 @@ export class ModuleFilters {
     sortBy?: FilterOption[];
     level: FilterOption[];
     locations: FilterOption[];
+    studyPoints: FilterOption[];
     showFavourites: boolean;
 }
 

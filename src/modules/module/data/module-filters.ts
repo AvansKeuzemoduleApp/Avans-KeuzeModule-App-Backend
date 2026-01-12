@@ -15,6 +15,20 @@ export const defaultModuleFilters: ModuleFilters = {
             key: 'all',
         },
     ],
+    studyPoints: [
+        {
+            name: '15 Studie Punten',
+            key: '15',
+        },
+        {
+            name: '30 Studie Punten',
+            key: '30',
+        },
+        {
+            name: 'Alle Aantallen',
+            key: 'all',
+        },
+    ],
     locations: [
         {
             name: 'Breda',

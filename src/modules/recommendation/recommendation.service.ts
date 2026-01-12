@@ -201,6 +201,11 @@ export class RecommendationService {
             );
         }
 
+        if (query.studyPoints && query.studyPoints !== 'all') {
+            const studyPointsValue = parseInt(query.studyPoints, 10);
+            modules = modules.filter((m) => m.studycredit === studyPointsValue);
+        }
+
         // Apply pagination
         const totalCount = modules.length;
         const totalPages = Math.ceil(totalCount / PAGE_SIZE);

@@ -319,6 +319,13 @@ export class ModuleService {
             });
         }
 
+        if (query.studyPoints && query.studyPoints !== 'all') {
+            const studyPointsValue = parseInt(query.studyPoints, 10);
+            queryBuilder.andWhere('module.studyCredit = :studyPoints', {
+                studyPoints: studyPointsValue,
+            });
+        }
+
         // Apply sorting
         const sortBy = query.sortBy || 'id_asc';
         switch (sortBy) {

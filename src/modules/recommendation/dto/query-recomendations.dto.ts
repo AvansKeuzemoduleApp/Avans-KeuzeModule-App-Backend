@@ -21,6 +21,12 @@ export class QueryRecommendationsDto {
     level?: string = 'all';
 
     @IsOptional()
+    @Transform(({ value }) => value === null || value === undefined || value === '' ? 'all' : String(value).trim())
+    @IsIn(['all', '15', '30'])
+    @IsString()
+    studyPoints?: string = 'all';
+
+    @IsOptional()
     @Transform(({ value }) => value === 'true' || value === true)
     @IsBoolean()
     favourites?: boolean;
