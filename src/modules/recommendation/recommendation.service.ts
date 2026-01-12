@@ -206,9 +206,11 @@ export class RecommendationService {
             page: currentPage,
             pages: totalPages,
             data: paginatedModules,
-            filters: defaultModuleFilters,
+            filters: {
+                ...defaultModuleFilters,
+                showFavourites: true,
+            },
         };
-        responseObject.filters.showFavourites = true;
         return responseObject;
     }
 }
