@@ -1,23 +1,15 @@
-export class FilterOption {
-    name: string;
-    key: string;
-}
+import { ModuleFilters } from "../../module/dto/module-response.dto";
 
-export class ModuleFilters {
-    sortBy?: FilterOption[];
-    level: FilterOption[];
-    locations: FilterOption[];
-    showFavourites: boolean;
-}
-
-export class ModuleQueryResponseDto<T = unknown> {
+export class RecommendationResponseDto<T = unknown> {
+    modelVersion: string;
+    createdAt: Date;
     page: number;
     pages: number;
     data: T[];
     filters: ModuleFilters;
 }
 
-export class ModuleResponseItemDto {
+export class RecommendedResponseItemDto {
     id: number;
     name: string;
     shortdescription: string;
@@ -32,6 +24,6 @@ export class ModuleResponseItemDto {
     estimated_difficulty: number;
     available_spots: number;
     start_date: string;
-
     isFavourite: boolean;
+    explanation: string;
 }
