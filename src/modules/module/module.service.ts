@@ -6,7 +6,7 @@ import { Module } from './module.entity';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { QueryModuleDto } from './dto/query-module.dto';
-import { ModuleQueryResponseDto } from './dto/module-response.dto';
+import { ModuleQueryResponseDto, ModuleResponseItemDto } from './dto/module-response.dto';
 import { ModuleDetailDto } from './dto/moduledetail-response.dto';
 import { ModuleMapper } from './mappers/toModuleDetailDtoMapper';
 import { defaultSortableModuleFilters } from './dto/module-filters';
@@ -196,7 +196,7 @@ export class ModuleService {
     async findAll(
         query: QueryModuleDto,
         user: string | undefined,
-    ): Promise<ModuleQueryResponseDto> {
+    ): Promise<ModuleQueryResponseDto<ModuleResponseItemDto>> {
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
             .select('module');

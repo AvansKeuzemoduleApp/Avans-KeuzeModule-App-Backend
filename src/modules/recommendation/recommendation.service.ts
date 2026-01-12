@@ -5,7 +5,7 @@ import { Module } from '../module/module.entity';
 import { RecommendationCache } from './recommendation-cache.entity';
 import { RecommendationOrder } from './recommendation-order.entity';
 import { ProfileService } from '../profile/profile.service';
-import { RecommendationResponseDto } from './dto/recommendation-response.dto';
+import { RecommendationResponseDto, RecommendedResponseItemDto } from './dto/recommendation-response.dto';
 import { templateResponse } from './dto/template-fastapi-response';
 import { ModuleResponseItemDto } from '../module/dto/module-response.dto';
 import { defaultModuleFilters } from '../module/dto/module-filters';
@@ -34,7 +34,7 @@ export class RecommendationService {
      * Checks student profile, looks for a valid cached recommendation,
      * otherwise returns template data.
      */
-    async getRecommendationsForUser(query: QueryRecommendationsDto, userId: string): Promise<RecommendationResponseDto<ModuleResponseItemDto>> {
+    async getRecommendationsForUser(query: QueryRecommendationsDto, userId: string): Promise<RecommendationResponseDto<RecommendedResponseItemDto>> {
         // Get student profile
         const profile = await this.profileService.ensureStudentProfileExists(userId);
 
@@ -142,7 +142,7 @@ export class RecommendationService {
         cache: RecommendationCache,
         query: QueryRecommendationsDto,
         userId: string,
-    ): Promise<RecommendationResponseDto<ModuleResponseItemDto>> {
+    ): Promise<RecommendationResponseDto<RecommendedResponseItemDto>> {
         const sortedOrders = cache.recommendationOrders.sort(
             (a, b) => a.recommendationOrder - b.recommendationOrder,
         );
@@ -154,7 +154,7 @@ export class RecommendationService {
         const favouriteModuleIds = new Set(favourites.map((f) => f.moduleId));
 
         // Map modules and add isFavourite flag
-        let modules: ModuleResponseItemDto[] = sortedOrders.map((order) => ({
+        let modules: RecommendedResponseItemDto[] = sortedOrders.map((order) => ({
             id: order.moduleInformation.id,
             name: order.moduleInformation.name,
             shortdescription: order.moduleInformation.shortDescription,
@@ -170,6 +170,7 @@ export class RecommendationService {
             available_spots: order.moduleInformation.availableSpots,
             start_date: order.moduleInformation.startDate,
             isFavourite: favouriteModuleIds.has(order.moduleInformation.id),
+            explenation: "Not implemented yet."
         }));
 
         // Apply filters
