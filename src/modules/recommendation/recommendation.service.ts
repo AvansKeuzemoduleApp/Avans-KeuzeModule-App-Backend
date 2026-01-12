@@ -6,7 +6,7 @@ import { RecommendationCache } from './recommendation-cache.entity';
 import { RecommendationOrder } from './recommendation-order.entity';
 import { ProfileService } from '../profile/profile.service';
 import { RecommendationResponseDto } from './dto/recommendation-response.dto';
-import { templateResonse } from './dto/template-fastapi-response';
+import { templateResponse } from './dto/template-fastapi-response';
 import { ModuleResponseItemDto } from '../module/dto/module-response.dto';
 import { defaultModuleFilters } from '../module/dto/module-filters';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
@@ -64,9 +64,9 @@ export class RecommendationService {
         const cachedRecommendation = await this.recommendationCacheRepo.findOne({
             where: {
                 userId,
-                interests: profile.interests,
-                merits: profile.merits,
-                goals: profile.goals,
+                interests: interests,
+                merits: merits,
+                goals: goals,
                 // expiresAt is either null (never expires) or greater than now
             },
             relations: ['recommendationOrders', 'recommendationOrders.moduleInformation'],
@@ -80,7 +80,7 @@ export class RecommendationService {
         // TODO: run api request to the FastAPI
         // this can only be doen once we have the fastAPI
         // we need to update the db to have the reason of the recommendation.
-        const response = templateResonse;
+        const response = templateResponse;
 
         // Fetch modules by IDs, skipping any that don't exist
         const modules = await this.moduleRepo.find({
