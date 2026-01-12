@@ -38,15 +38,27 @@ export class RecommendationService {
         // Get student profile
         const profile = await this.profileService.ensureStudentProfileExists(userId);
 
-        // Validate profile fields (trim whitespace and special chars)
-        const interests = profile.interests?.trim().replace(/[^\w\s]/gi, '').trim() || '';
-        const merits = profile.merits?.trim().replace(/[^\w\s]/gi, '').trim() || '';
-        const goals = profile.goals?.trim().replace(/[^\w\s]/gi, '').trim() || '';
+        // Validate profile fields (trim whitespace only)
+        const interests = profile.interests?.trim() || '';
+        const merits = profile.merits?.trim() || '';
+        const goals = profile.goals?.trim() || '';
 
-        if (!interests || !merits || !goals) {
-            throw new BadRequestException('Profile incomplete. Please set your interests, merits, and goals before requesting recommendations.');
+        const missingFields: string[] = [];
+        if (!interests) {
+            missingFields.push('interests');
+        }
+        if (!merits) {
+            missingFields.push('merits');
+        }
+        if (!goals) {
+            missingFields.push('goals');
         }
 
+        if (missingFields.length > 0) {
+            throw new BadRequestException(
+                `Profile incomplete. Please set the following fields before requesting recommendations: ${missingFields.join(', ')}.`,
+            );
+        }
         // Look for cached recommendations matching profile criteria
         const now = new Date();
         const cachedRecommendation = await this.recommendationCacheRepo.findOne({
