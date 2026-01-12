@@ -291,9 +291,11 @@ export class ModuleService {
             page: currentPage,
             pages: totalPages,
             data,
-            filters: defaultSortableModuleFilters
-        }
-        responseObject.filters.showFavourites = false;
+            filters: {
+                ...defaultSortableModuleFilters,
+                showFavourites: false,
+            },
+        };
         return responseObject;
     }
 
