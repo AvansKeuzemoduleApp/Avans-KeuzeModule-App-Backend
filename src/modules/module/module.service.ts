@@ -9,6 +9,7 @@ import { QueryModuleDto } from './dto/query-module.dto';
 import { ModuleQueryResponseDto } from './dto/module-response.dto';
 import { ModuleDetailDto } from './dto/moduledetail-response.dto';
 import { ModuleMapper } from './mappers/toModuleDetailDtoMapper';
+import { sanitizeTags, sanitizeText } from '../../sanitization/sanitize-text';
 
 const PAGE_SIZE = 10;
 
@@ -18,6 +19,59 @@ export class ModuleService {
     | { tableName: string; columnName: string }
     | null
     | undefined;
+
+  private validateNonEmptyString(
+    value: string | null | undefined,
+    fieldName: string,
+  ): void {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      throw new BadRequestException(`Field "${fieldName}" must be a non-empty string.`);
+    }
+  }
+
+  private sanitizeCreateDto(dto: CreateModuleDto): CreateModuleDto {
+    return {
+      ...dto,
+      name: sanitizeText(dto.name),
+      shortdescription: sanitizeText(dto.shortdescription),
+      description: sanitizeText(dto.description),
+      location: sanitizeText(dto.location),
+      level: sanitizeText(dto.level),
+      learningoutcomes: sanitizeText(dto.learningoutcomes),
+      module_tags: sanitizeTags(dto.module_tags ?? []),
+    };
+  }
+
+  private sanitizeUpdateDto(dto: UpdateModuleDto): UpdateModuleDto {
+    const out: UpdateModuleDto = { ...dto };
+
+    const textFields: Array<
+      keyof Pick<
+        UpdateModuleDto,
+        'name' | 'shortdescription' | 'description' | 'location' | 'level' | 'learningoutcomes'
+      >
+    > = [
+      'name',
+      'shortdescription',
+      'description',
+      'location',
+      'level',
+      'learningoutcomes',
+    ];
+
+    for (const key of textFields) {
+      const value = out[key];
+      if (typeof value === 'string') {
+        out[key] = sanitizeText(value) as any;
+      }
+    }
+
+    if (out.module_tags !== undefined) {
+      out.module_tags = sanitizeTags(out.module_tags ?? []);
+    }
+
+    return out;
+  }
 
   constructor(
     @InjectRepository(Module)
@@ -122,6 +176,15 @@ export class ModuleService {
   }
 
   async create(dto: CreateModuleDto): Promise<Module> {
+    dto = this.sanitizeCreateDto(dto);
+
+    this.validateNonEmptyString(dto.name, 'name');
+    this.validateNonEmptyString(dto.shortdescription, 'shortdescription');
+    this.validateNonEmptyString(dto.description, 'description');
+    this.validateNonEmptyString(dto.location, 'location');
+    this.validateNonEmptyString(dto.level, 'level');
+    this.validateNonEmptyString(dto.learningoutcomes, 'learningoutcomes');
+
     await this.ensureContactExists(dto.contact_id);
 
     const entity = this.moduleRepo.create({
@@ -146,6 +209,19 @@ export class ModuleService {
   async update(id: number, dto: UpdateModuleDto): Promise<Module> {
     const entity = await this.moduleRepo.findOne({ where: { id } });
     if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+
+    dto = this.sanitizeUpdateDto(dto);
+
+    if (dto.name !== undefined) this.validateNonEmptyString(dto.name, 'name');
+    if (dto.shortdescription !== undefined)
+      this.validateNonEmptyString(dto.shortdescription, 'shortdescription');
+    if (dto.description !== undefined)
+      this.validateNonEmptyString(dto.description, 'description');
+    if (dto.location !== undefined)
+      this.validateNonEmptyString(dto.location, 'location');
+    if (dto.level !== undefined) this.validateNonEmptyString(dto.level, 'level');
+    if (dto.learningoutcomes !== undefined)
+      this.validateNonEmptyString(dto.learningoutcomes, 'learningoutcomes');
 
     if (dto.contact_id !== undefined) {
       await this.ensureContactExists(dto.contact_id);
