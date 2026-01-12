@@ -67,7 +67,7 @@ export class RecommendationService {
                 interests: interests,
                 merits: merits,
                 goals: goals,
-                // expiresAt is either null (never expires) or greater than now
+                // TODO: expiresAt is either null (never expires) or greater than now
             },
             relations: ['recommendationOrders', 'recommendationOrders.moduleInformation'],
         });
