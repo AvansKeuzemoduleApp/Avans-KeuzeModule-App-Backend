@@ -9,7 +9,7 @@ import { QueryModuleDto } from './dto/query-module.dto';
 import { ModuleQueryResponseDto, ModuleResponseItemDto } from './dto/module-response.dto';
 import { ModuleDetailDto } from './dto/moduledetail-response.dto';
 import { ModuleMapper } from './mappers/toModuleDetailDtoMapper';
-import { defaultSortableModuleFilters } from './dto/module-filters';
+import { defaultSortableModuleFilters } from './data/module-filters';
 import { sanitizeTags, sanitizeText } from '../../sanitization/sanitize-text';
 
 const PAGE_SIZE = 10;
@@ -320,13 +320,13 @@ export class ModuleService {
         }
 
         // Apply sorting
-        const sortBy = query.sortBy || 'popularity';
+        const sortBy = query.sortBy || 'id_asc';
         switch (sortBy) {
-            case 'popularity':
-                queryBuilder.orderBy('module.popularity_score', 'DESC');
+            case 'id':
+                queryBuilder.orderBy('module.id', 'DESC');
                 break;
-            case 'popularity_asc':
-                queryBuilder.orderBy('module.popularity_score', 'ASC');
+            case 'id_asc':
+                queryBuilder.orderBy('module.id', 'ASC');
                 break;
             case 'difficulty':
                 queryBuilder.orderBy('module.estimated_difficulty', 'ASC');
@@ -347,7 +347,7 @@ export class ModuleService {
                 queryBuilder.orderBy('module.start_date', 'DESC');
                 break;
             default:
-                queryBuilder.orderBy('module.popularity_score', 'DESC');
+                queryBuilder.orderBy('module.id', 'ASC');
         }
 
         const totalCount = await queryBuilder.getCount();

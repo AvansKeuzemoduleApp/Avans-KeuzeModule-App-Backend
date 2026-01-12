@@ -8,7 +8,7 @@ import { ProfileService } from '../profile/profile.service';
 import { RecommendationResponseDto, RecommendedResponseItemDto } from './dto/recommendation-response.dto';
 import { templateResponse } from './dto/template-fastapi-response';
 import { ModuleResponseItemDto } from '../module/dto/module-response.dto';
-import { defaultModuleFilters } from '../module/dto/module-filters';
+import { defaultModuleFilters } from '../module/data/module-filters';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
 import { StudentFavourite } from '../student-favourite/student-favourite.entity';
 
