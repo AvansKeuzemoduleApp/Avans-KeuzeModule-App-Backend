@@ -1,4 +1,4 @@
-import { ModuleFilters } from "./module-response.dto";
+import { ModuleFilters } from "../dto/module-response.dto";
 
 export const defaultModuleFilters: ModuleFilters = {
     level: [
@@ -39,12 +39,12 @@ export const defaultModuleFilters: ModuleFilters = {
 export const defaultSortableModuleFilters = structuredClone(defaultModuleFilters)
 defaultSortableModuleFilters.sortBy = [
     {
-        name: 'Populariteit ▼',
-        key: 'popularity',
+        name: 'Toevoegdatum ▼',
+        key: 'id',
     },
     {
-        name: 'Populariteit ▲',
-        key: 'popularity_asc',
+        name: 'Toevoegdatum ▲',
+        key: 'id_asc',
     },
     {
         name: 'Moeilijkheidsgraad ▲',

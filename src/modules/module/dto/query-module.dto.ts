@@ -15,10 +15,10 @@ export class QueryModuleDto {
     location?: string = 'all';
 
     @IsOptional()
-    @Transform(({ value }) => value === null || value === undefined || value === '' ? 'popularity' : String(value).trim())
-    @IsIn(['popularity', 'popularity_asc', 'difficulty', 'difficulty_desc', 'name', 'name_desc', 'start_date', 'start_date_desc'])
+    @Transform(({ value }) => value === null || value === undefined || value === '' ? 'id' : String(value).trim())
+    @IsIn(['id', 'id_asc', 'difficulty', 'difficulty_desc', 'name', 'name_desc', 'start_date', 'start_date_desc'])
     @IsString()
-    sortBy?: string = 'popularity';
+    sortBy?: string = 'id_asc';
 
     @IsOptional()
     @Transform(({ value }) => value === null || value === undefined || value === '' ? 'all' : String(value).trim())
