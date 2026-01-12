@@ -16,14 +16,12 @@ type RequestWithUser = Request & { user?: { sub: string } };
 export class ModuleController {
   constructor(private readonly moduleService: ModuleService) {}
 
+  @Public()
   @Get()
   async findAll(@Req() req: RequestWithUser, @Query() query: QueryModuleDto) {
     const userId = req.user?.sub;
 
     if (!userId) {
-      // For unauthenticated requests, do not mutate the incoming query object.
-      // Instead, pass a derived query with favourites explicitly set to false
-      // and an undefined user ID.
       return this.moduleService.findAll(
         { ...query, favourites: false },
         undefined,
@@ -33,6 +31,7 @@ export class ModuleController {
     return this.moduleService.findAll(query, userId);
   }
 
+  @Public()
   @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,

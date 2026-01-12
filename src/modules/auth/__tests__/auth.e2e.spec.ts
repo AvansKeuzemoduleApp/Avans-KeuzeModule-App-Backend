@@ -12,10 +12,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtCookieAuthGuard } from '../guards/jwt-cookie.guard';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { response } from 'express';
+import { DataSource } from 'typeorm';
 
 describe('Auth E2E Tests', () => {
     let app: INestApplication;
     let configService: ConfigService;
+    let dataSource: DataSource;
     
     // Cache test users to avoid redundant registrations
     const testUsers: { [key: string]: { email: string; password: string } } = {};
@@ -66,6 +68,7 @@ describe('Auth E2E Tests', () => {
 
         app = moduleFixture.createNestApplication();
         configService = moduleFixture.get<ConfigService>(ConfigService);
+        dataSource = moduleFixture.get<DataSource>(DataSource);
 
         // Set trust proxy for IP extraction
         const expressApp = app.getHttpAdapter().getInstance();
@@ -81,6 +84,30 @@ describe('Auth E2E Tests', () => {
         );
 
         await app.init();
+
+        // These tables are used via raw SQL (roles/user_roles) and are not created by entities.
+        // Create a minimal schema for them in the test database.
+        await dataSource.query(`
+            CREATE TABLE IF NOT EXISTS roles (
+                id INT NOT NULL AUTO_INCREMENT,
+                name VARCHAR(50) NOT NULL,
+                PRIMARY KEY (id),
+                UNIQUE KEY uq_roles_name (name)
+            ) ENGINE=InnoDB;
+        `);
+
+        await dataSource.query(`
+            CREATE TABLE IF NOT EXISTS user_roles (
+                user_id VARCHAR(36) NOT NULL,
+                role_id INT NOT NULL,
+                UNIQUE KEY uq_user_roles (user_id, role_id),
+                KEY idx_user_roles_role_id (role_id)
+            ) ENGINE=InnoDB;
+        `);
+
+        await dataSource.query(
+            `INSERT IGNORE INTO roles (name) VALUES ('student'), ('teacher');`,
+        );
     });
 
     afterAll(async () => {

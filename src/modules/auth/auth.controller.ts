@@ -27,6 +27,7 @@ export class AuthController {
     }
 
     @Public()
+    @Throttle({ default: { limit: 5, ttl: 60 } })
     @Post('register')
     @HttpCode(200)
     async register(@Body() dto: RegisterDto) {
@@ -54,7 +55,8 @@ export class AuthController {
             const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
             const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
-            const sameSite = (process.env.COOKIE_SAMESITE ?? 'lax') as 'lax' | 'strict' | 'none';
+            const rawSameSite = String(process.env.COOKIE_SAMESITE ?? 'lax').toLowerCase();
+            const sameSite = (rawSameSite === 'strict' ? 'strict' : 'lax') as 'lax' | 'strict';
 
             res.cookie(accessName, accessToken, {
                 httpOnly: true,
@@ -93,7 +95,8 @@ export class AuthController {
         const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
         const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
-        const sameSite = (process.env.COOKIE_SAMESITE ?? 'lax') as 'lax' | 'strict' | 'none';
+        const rawSameSite = String(process.env.COOKIE_SAMESITE ?? 'lax').toLowerCase();
+        const sameSite = (rawSameSite === 'strict' ? 'strict' : 'lax') as 'lax' | 'strict';
 
         const refreshToken = req.cookies?.[refreshName];
 
@@ -108,14 +111,16 @@ export class AuthController {
     }
 
     @Public()
+    @Throttle({ default: { limit: 20, ttl: 60 } })
     @Post('refresh')
     @HttpCode(200)
     async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response){
         const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
         const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
-        const secure = (process.env.COOKIE_SECURE) === 'true';
-        const sameSite = (process.env.COOKIE_SAMESITE) as 'lax' | 'strict' | 'none';
+        const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
+        const rawSameSite = String(process.env.COOKIE_SAMESITE ?? 'lax').toLowerCase();
+        const sameSite = (rawSameSite === 'strict' ? 'strict' : 'lax') as 'lax' | 'strict';
 
         const oldRefresh = req.cookies?.[refreshName];
         if (!oldRefresh)
