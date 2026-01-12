@@ -19,6 +19,65 @@ export class ModuleService {
     | null
     | undefined;
 
+  private sanitizeText(value: string): string {
+    return value
+      .replace(/\r\n/g, '\n')
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+      .trim();
+  }
+
+  private sanitizeTags(tags: string[]): string[] {
+    const cleaned = tags
+      .map((t) => this.sanitizeText(String(t)))
+      .filter((t) => t.length > 0);
+
+    return Array.from(new Set(cleaned));
+  }
+
+  private sanitizeCreateDto(dto: CreateModuleDto): CreateModuleDto {
+    return {
+      ...dto,
+      name: this.sanitizeText(dto.name),
+      shortdescription: this.sanitizeText(dto.shortdescription),
+      description: this.sanitizeText(dto.description),
+      location: this.sanitizeText(dto.location),
+      level: this.sanitizeText(dto.level),
+      learningoutcomes: this.sanitizeText(dto.learningoutcomes),
+      module_tags: this.sanitizeTags(dto.module_tags ?? []),
+    };
+  }
+
+  private sanitizeUpdateDto(dto: UpdateModuleDto): UpdateModuleDto {
+    const out: UpdateModuleDto = { ...dto };
+
+    const textFields: Array<
+      keyof Pick<
+        UpdateModuleDto,
+        'name' | 'shortdescription' | 'description' | 'location' | 'level' | 'learningoutcomes'
+      >
+    > = [
+      'name',
+      'shortdescription',
+      'description',
+      'location',
+      'level',
+      'learningoutcomes',
+    ];
+
+    for (const key of textFields) {
+      const value = out[key];
+      if (value !== undefined) {
+        out[key] = this.sanitizeText(value) as any;
+      }
+    }
+
+    if (out.module_tags !== undefined) {
+      out.module_tags = this.sanitizeTags(out.module_tags ?? []);
+    }
+
+    return out;
+  }
+
   constructor(
     @InjectRepository(Module)
     private readonly moduleRepo: Repository<Module>,
@@ -122,6 +181,7 @@ export class ModuleService {
   }
 
   async create(dto: CreateModuleDto): Promise<Module> {
+    dto = this.sanitizeCreateDto(dto);
     await this.ensureContactExists(dto.contact_id);
 
     const entity = this.moduleRepo.create({
@@ -146,6 +206,8 @@ export class ModuleService {
   async update(id: number, dto: UpdateModuleDto): Promise<Module> {
     const entity = await this.moduleRepo.findOne({ where: { id } });
     if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+
+    dto = this.sanitizeUpdateDto(dto);
 
     if (dto.contact_id !== undefined) {
       await this.ensureContactExists(dto.contact_id);
