@@ -38,19 +38,19 @@ export class RecommendationService {
         // Get student profile
         const profile = await this.profileService.ensureStudentProfileExists(userId);
 
-        // Validate profile fields (trim whitespace only)
+        // Validate profile fields (semicolon-separated format)
         const interests = profile.interests?.trim() || '';
         const merits = profile.merits?.trim() || '';
         const goals = profile.goals?.trim() || '';
 
         const missingFields: string[] = [];
-        if (!interests) {
+        if (!interests || interests === ';') {
             missingFields.push('interests');
         }
-        if (!merits) {
+        if (!merits || merits === ';') {
             missingFields.push('merits');
         }
-        if (!goals) {
+        if (!goals || goals === ';') {
             missingFields.push('goals');
         }
 
@@ -101,12 +101,12 @@ export class RecommendationService {
         expiresAt.setHours(expiresAt.getHours() + cacheHours);
 
         const cache = this.recommendationCacheRepo.create({
-            userId,
-            interests: profile.interests,
-            merits: profile.merits,
-            goals: profile.goals,
+            userId: userId,
+            interests: interests,
+            merits: merits || undefined,
+            goals: goals || undefined,
             modelVersion: response.model_version,
-            expiresAt,
+            expiresAt: expiresAt,
         });
         await this.recommendationCacheRepo.save(cache);
 
