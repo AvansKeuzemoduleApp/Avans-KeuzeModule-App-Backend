@@ -8,6 +8,7 @@ import { ProfileService } from '../profile/profile.service';
 import { RecommendationResponseDto } from './dto/recommendation-response.dto';
 import { templateResonse } from './dto/template-fastapi-response';
 import { ModuleResponseItemDto } from '../module/dto/module-response.dto';
+import { defaultModuleFilters } from '../module/dto/module-filters';
 
 @Injectable()
 export class RecommendationService {
@@ -140,17 +141,6 @@ export class RecommendationService {
             isFavourite: false, // TODO: add favourites data
         }));
 
-        // TODO: load this from the hardcoded thing instead.
-        const levels = [...new Set(modules.map((m) => m.level))].map((level) => ({
-            name: level,
-            key: level,
-        }));
-
-        const locations = [...new Set(modules.map((m) => m.location))].map((location) => ({
-            name: location,
-            key: location,
-        }));
-
         // TODO: apply pagination
 
         return {
@@ -159,10 +149,7 @@ export class RecommendationService {
             page: 1,
             pages: 1,
             data: modules,
-            filters: {
-                level: levels,
-                locations,
-            },
+            filters: defaultModuleFilters,
         };
     }
 
