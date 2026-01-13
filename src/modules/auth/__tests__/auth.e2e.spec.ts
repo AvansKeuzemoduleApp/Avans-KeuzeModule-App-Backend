@@ -11,7 +11,6 @@ import { UsersModule } from '../../users/users.module'
 import { APP_GUARD } from '@nestjs/core';
 import { JwtCookieAuthGuard } from '../guards/jwt-cookie.guard';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { response } from 'express';
 import { DataSource } from 'typeorm';
 
 describe('Auth E2E Tests', () => {

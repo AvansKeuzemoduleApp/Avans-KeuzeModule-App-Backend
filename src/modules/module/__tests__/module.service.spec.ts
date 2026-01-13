@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ModuleService } from '../module.service';
 
 describe('ModuleService', () => {
