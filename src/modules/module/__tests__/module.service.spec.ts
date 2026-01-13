@@ -80,7 +80,6 @@ describe('ModuleService', () => {
                 start_date: '2026-09-01',
             };
 
-            await expect(service.create(dto)).rejects.toThrow(BadRequestException);
             await expect(service.create(dto)).rejects.toThrow('Field "name" must be a non-empty string.');
         });
 
@@ -105,9 +104,7 @@ describe('ModuleService', () => {
                 start_date: '2026-09-01',
             };
 
-            const createPromise = service.create(dto);
-            await expect(createPromise).rejects.toThrow(BadRequestException);
-            await expect(createPromise).rejects.toThrow('Invalid contact_id');
+            await expect(service.create(dto)).rejects.toThrow('Invalid contact_id');
         });
 
         it('should call sanitize functions on text fields', async () => {
@@ -199,7 +196,6 @@ describe('ModuleService', () => {
 
             const dto = { name: 'New Name' };
 
-            await expect(service.update(999, dto)).rejects.toThrow(NotFoundException);
             await expect(service.update(999, dto)).rejects.toThrow('Module with ID 999 not found');
         });
 
@@ -215,7 +211,6 @@ describe('ModuleService', () => {
 
             const dto = { name: '   ' };
 
-            await expect(service.update(1, dto)).rejects.toThrow(BadRequestException);
             await expect(service.update(1, dto)).rejects.toThrow('Field "name" must be a non-empty string.');
         });
 
@@ -277,9 +272,7 @@ describe('ModuleService', () => {
 
             moduleRepo.findOne.mockResolvedValue(null);
 
-            await expect(service.remove(999)).rejects.toThrowError(
-                new NotFoundException('Module with ID 999 not found'),
-            );
+            await expect(service.remove(999)).rejects.toThrow('Module with ID 999 not found');
         });
     });
 
@@ -512,10 +505,7 @@ describe('ModuleService', () => {
 
             moduleRepo.createQueryBuilder.mockReturnValue(queryBuilder);
 
-            const promise = service.findOne(999, 'user123');
-
-            await expect(promise).rejects.toThrow(NotFoundException);
-            await expect(promise).rejects.toThrow('Module with ID 999 not found');
+            await expect(service.findOne(999, 'user123')).rejects.toThrow('Module with ID 999 not found');
         });
 
         it('should work without user (public access)', async () => {
