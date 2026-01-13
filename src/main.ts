@@ -5,7 +5,9 @@ import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, {
+        logger: ['error', 'warn'],
+    });
     app.setGlobalPrefix('api');
 
     const expressApp = app.getHttpAdapter().getInstance();
