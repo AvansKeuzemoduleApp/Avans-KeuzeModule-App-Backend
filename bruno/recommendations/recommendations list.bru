@@ -1,0 +1,25 @@
+meta {
+  name: recommendations list
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}/recommendation
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~studyPoints: 30
+  ~favourites: true
+  ~search: Rouw en verlies
+  ~level: NLQF5
+  ~location: den bosch
+  ~page: 2
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

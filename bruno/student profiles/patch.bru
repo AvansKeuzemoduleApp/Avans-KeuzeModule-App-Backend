@@ -1,0 +1,69 @@
+meta {
+  name: patch
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{url}}/profile
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "interests": "kaas;Machine Learning;Mobile Development;Web Development;",
+      "merits": "worst;React;Java;Python;",
+      "goals": "murder is a flock of crows;Beter worden in web development;Data science vaardigheden ontwikkelen;Mobile app development leren;"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
+
+example {
+  name: 200 OK
+  
+  request: {
+    url: {{url}}/profile
+    method: PATCH
+    mode: json
+    body:json: {
+      {
+          "interests": "kaas;Machine Learning;Mobile Development;Web Development;",
+          "merits": "worst;React;Java;Python;",
+          "goals": "murder is a flock of crows;Beter worden in web development;Data science vaardigheden ontwikkelen;Mobile app development leren;"
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      X-Powered-By: Express
+      Vary: Origin
+      Content-Type: application/json; charset=utf-8
+      Content-Length: 101
+      ETag: W/"65-lOgSOCdCa6SXMdLhMwbcJm6lkJc"
+      Date: Fri, 19 Dec 2025 16:32:00 GMT
+      Connection: keep-alive
+      Keep-Alive: timeout=5
+    }
+  
+    status: {
+      code: OK
+      text: 200
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+            "interests": "kaas;Machine Learning;Mobile Development;Web Development;",
+            "merits": "worst;React;Java;Python;",
+            "goals": "murder is a flock of crows;Beter worden in web development;Data science vaardigheden ontwikkelen;Mobile app development leren;"
+        }
+      '''
+    }
+  }
+}

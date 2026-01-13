@@ -1,0 +1,35 @@
+meta {
+  name: login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/auth/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "email": "test1@student.nl",
+      "password": "IncrediblyStrongPassword123!"
+  }
+}
+
+script:post-response {
+  const setCookieHeader = res.getHeader("set-cookie");
+  if (setCookieHeader && setCookieHeader.length > 0) {
+    const accessTokenCookie = setCookieHeader.find(c => c.startsWith('access_token='));
+    if (accessTokenCookie) {
+      const token = accessTokenCookie.split(';')[0].split('=')[1];
+      bru.setVar("access_token_cookie", token);
+      console.log("Access token cookie saved to variable 'access_token_cookie'.");
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

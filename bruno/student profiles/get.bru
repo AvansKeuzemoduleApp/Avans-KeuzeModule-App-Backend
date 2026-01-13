@@ -1,0 +1,133 @@
+meta {
+  name: get
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}/profile
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: not found
+  
+  request: {
+    url: {{url}}/profile/student
+    method: GET
+    mode: none
+  }
+  
+  response: {
+    headers: {
+      X-Powered-By: Express
+      Vary: Origin
+      Content-Type: application/json; charset=utf-8
+      Content-Length: 76
+      ETag: W/"4c-cnvSUuw0tVxvC4ipIk0x+Yovar8"
+      Date: Fri, 19 Dec 2025 15:16:51 GMT
+      Connection: keep-alive
+      Keep-Alive: timeout=5
+    }
+  
+    status: {
+      code: Not Found
+      text: 404
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+            "message": "Student profile not found",
+            "error": "Not Found",
+            "statusCode": 404
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: unauthorized
+  
+  request: {
+    url: {{url}}/profile
+    method: GET
+    mode: none
+  }
+  
+  response: {
+    headers: {
+      X-Powered-By: Express
+      Vary: Origin
+      Content-Type: application/json; charset=utf-8
+      Content-Length: 66
+      ETag: W/"42-fLKBTh6AiPPZ3yLlcpVwH1V7rzA"
+      Date: Fri, 19 Dec 2025 16:11:38 GMT
+      Connection: keep-alive
+      Keep-Alive: timeout=5
+    }
+  
+    status: {
+      code: Unauthorized
+      text: 401
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+            "message": "Unauthorized",
+            "error": "Unauthorized",
+            "statusCode": 401
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 OK
+  
+  request: {
+    url: {{url}}/profile
+    method: GET
+    mode: none
+  }
+  
+  response: {
+    headers: {
+      X-Powered-By: Express
+      Vary: Origin
+      Content-Type: application/json; charset=utf-8
+      Content-Length: 101
+      ETag: W/"65-lOgSOCdCa6SXMdLhMwbcJm6lkJc"
+      Date: Fri, 19 Dec 2025 16:32:17 GMT
+      Connection: keep-alive
+      Keep-Alive: timeout=5
+    }
+  
+    status: {
+      code: OK
+      text: 200
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+            "interests": "kaas;Machine Learning;Mobile Development;Web Development;",
+            "merits": "worst;React;Java;Python;",
+            "goals": "murder is a flock of crows;Beter worden in web development;Data science vaardigheden ontwikkelen;Mobile app development leren;"
+        }
+      '''
+    }
+  }
+}

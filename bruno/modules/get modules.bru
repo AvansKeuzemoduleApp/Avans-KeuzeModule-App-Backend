@@ -1,0 +1,26 @@
+meta {
+  name: get modules
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}/modules/
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~favourites: true
+  ~sortBy: popularity
+  ~search: Rouw en verlies
+  ~location: den bosch
+  ~level: NLQF6
+  ~page: 2
+  ~studyPoints: 15
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

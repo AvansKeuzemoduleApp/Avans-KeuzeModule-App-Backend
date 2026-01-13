@@ -1,0 +1,22 @@
+meta {
+  name: refresh
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{url}}/auth/refresh
+  body: text
+  auth: inherit
+}
+
+body:text {
+  {
+      "email": "test@student.nl",
+      "password": "IncrediblyStrongPassword123!"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
