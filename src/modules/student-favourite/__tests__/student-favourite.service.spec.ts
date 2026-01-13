@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { StudentFavouriteService } from '../student-favourite.service';
 import { StudentFavourite } from '../student-favourite.entity';
 
