@@ -26,9 +26,6 @@ import { RecommendationModule } from './modules/recommendation/recommendation.mo
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
             autoLoadEntities: true,
-
-            //TODO (REMOVE THIS DEV OPTION)
-            synchronize: process.env.DB_SYNCHRONIZE === 'true'
         }),
 
         ThrottlerModule.forRoot({
