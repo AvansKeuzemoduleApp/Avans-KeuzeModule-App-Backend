@@ -82,24 +82,14 @@ export class ProfileService {
         const profile = await this.ensureStudentProfileExists(userId); // fallback
 
         // Apply the DTO changes to the profile
-        if (dto.interests !== undefined) {
-            profile.interests = dto.interests;
-        }
-        if (dto.merits !== undefined) {
-            profile.merits = dto.merits;
-        }
-        if (dto.goals !== undefined) {
-            profile.goals = dto.goals;
-        }
-
-        this.logger.log(`Updated student profile for user ${userId}`);        if (dto.interests !== undefined) {
-            profile.interests = dto.interests || null;
-        }
         if (dto.merits !== undefined) {
             profile.merits = dto.merits || null;
         }
         if (dto.goals !== undefined) {
             profile.goals = dto.goals || null;
+        }
+        if (dto.interests !== undefined) {
+            profile.interests = dto.interests || null;
         }
 
         this.logger.log(`Updated student profile for user ${userId}`);
