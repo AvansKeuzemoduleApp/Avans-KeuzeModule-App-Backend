@@ -1,11 +1,14 @@
-import { Body, Controller, Get, Patch, Req, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Patch, Req, UnauthorizedException } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
+import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string } };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string };
 
 @Controller('profile')
 export class ProfileController {
+    private readonly logger = new Logger(ProfileController.name);
+
     constructor(private readonly profileService: ProfileService) { }
 
     @Get()
@@ -13,7 +16,26 @@ export class ProfileController {
         if (!req.user?.sub) {
             throw new UnauthorizedException('User not authenticated');
         }
-        return this.profileService.getOrCreateStudentProfile(req.user.sub);
+
+        const userId = req.user.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: { username: userId },
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null,
+            httpMethod: req.method,
+            userId,
+        });
+
+        try {
+            const result = await this.profileService.getOrCreateStudentProfile(userId);
+            log.Update('httpResponse', 200).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Patch()
@@ -24,6 +46,25 @@ export class ProfileController {
         if (!req.user?.sub) {
             throw new UnauthorizedException('User not authenticated');
         }
-        return this.profileService.updateStudentProfile(req.user.sub, dto);
+
+        const userId = req.user.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: { username: userId },
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null,
+            httpMethod: req.method,
+            userId,
+        });
+
+        try {
+            const result = await this.profileService.updateStudentProfile(userId, dto);
+            log.Update('httpResponse', 200).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 }

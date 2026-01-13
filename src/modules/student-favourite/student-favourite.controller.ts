@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Param, ParseIntPipe, Post, Req, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Delete, Logger, Param, ParseIntPipe, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { StudentFavouriteService } from './student-favourite.service';
 import { AddFavouriteDto } from './dto/add-favourite.dto';
+import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string } };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string };
 
 @Controller('student-favourite')
 export class StudentFavouriteController {
+    private readonly logger = new Logger(StudentFavouriteController.name);
+
     constructor(private readonly studentFavouriteService: StudentFavouriteService) { }
 
     @Post()
@@ -16,7 +19,27 @@ export class StudentFavouriteController {
         if (!req.user?.sub) {
             throw new UnauthorizedException('User not authenticated');
         }
-        return this.studentFavouriteService.addFavourite(req.user.sub, dto.moduleId);
+
+        const userId = req.user.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: { username: userId },
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null,
+            httpMethod: req.method,
+            userId,
+            requestBody: { moduleId: dto.moduleId },
+        });
+
+        try {
+            const result = await this.studentFavouriteService.addFavourite(userId, dto.moduleId);
+            log.Update('httpResponse', 201).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Delete(':moduleId')
@@ -27,7 +50,26 @@ export class StudentFavouriteController {
         if (!req.user?.sub) {
             throw new UnauthorizedException('User not authenticated');
         }
-        await this.studentFavouriteService.removeFavourite(req.user.sub, moduleId);
-        return { message: 'Favourite removed successfully' };
+
+        const userId = req.user.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: { username: userId },
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null,
+            httpMethod: req.method,
+            userId,
+            requestBody: { moduleId },
+        });
+
+        try {
+            await this.studentFavouriteService.removeFavourite(userId, moduleId);
+            log.Update('httpResponse', 200).Send();
+            return { message: 'Favourite removed successfully' };
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 }

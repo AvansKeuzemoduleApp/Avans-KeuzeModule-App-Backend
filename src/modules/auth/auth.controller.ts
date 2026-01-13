@@ -32,9 +32,24 @@ export class AuthController {
     @Throttle({ default: { limit: 5, ttl: 60 } })
     @Post('register')
     @HttpCode(200)
-    async register(@Body() dto: RegisterDto) {
-        await this.authService.register(dto);
-        return { message: 'If registration is possible, the account will be created.' };
+    async register(@Body() dto: RegisterDto, @Req() req: RequestWithCookies) {
+        const log = new LoggingHandler(this.logger, {
+            userData: { username: dto.email },
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null,
+            httpMethod: req.method,
+        });
+
+        try {
+            await this.authService.register(dto);
+            log.Update('httpResponse', 200).Send();
+            return { message: 'If registration is possible, the account will be created.' };
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Public()
@@ -50,13 +65,12 @@ export class AuthController {
         const { key, backoffMs } = this.loginProtection.check(ip);
 
         const log = new LoggingHandler(this.logger, {
-            userData: {
-                username: dto.email
-            },
+            userData: { username: dto.email },
             level: "log",
             codeLocation: req.originalUrl,
             isResponseLog: true,
-            httpResponse: null
+            httpResponse: null,
+            httpMethod: req.method,
         });
         try {
             const { accessToken, refreshToken } = await this.authService.login(dto);
@@ -94,7 +108,7 @@ export class AuthController {
             if (backoffMs > 0) {
                 res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
             }
-            log.Update('httpResponse', 500).Send();
+            log.Update('httpResponse', 401).Update('level', 'warn').Update('errorMessage', e.message).Send();
             throw e;
         }
     }
@@ -102,23 +116,38 @@ export class AuthController {
     @Post('logout')
     @HttpCode(200)
     async logout(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
-        const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
-        const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
-
-        const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
-        const rawSameSite = String(process.env.COOKIE_SAMESITE ?? 'lax').toLowerCase();
-        const sameSite = (rawSameSite === 'strict' ? 'strict' : 'lax') as 'lax' | 'strict';
-
-        const refreshToken = req.cookies?.[refreshName];
-
         const userId = req.user?.sub ? String(req.user.sub) : undefined;
+        const log = new LoggingHandler(this.logger, {
+            userData: userId ? { username: userId } : null,
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null,
+            httpMethod: req.method,
+            userId,
+        });
 
-        await this.authService.logout(userId, refreshToken);
+        try {
+            const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
+            const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
-        res.clearCookie(accessName, { path: '/', secure, sameSite });
-        res.clearCookie(refreshName, { path: '/api/auth', secure, sameSite });
+            const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
+            const rawSameSite = String(process.env.COOKIE_SAMESITE ?? 'lax').toLowerCase();
+            const sameSite = (rawSameSite === 'strict' ? 'strict' : 'lax') as 'lax' | 'strict';
 
-        return { message: 'Logged out' };
+            const refreshToken = req.cookies?.[refreshName];
+
+            await this.authService.logout(userId, refreshToken);
+
+            res.clearCookie(accessName, { path: '/', secure, sameSite });
+            res.clearCookie(refreshName, { path: '/api/auth', secure, sameSite });
+
+            log.Update('httpResponse', 200).Send();
+            return { message: 'Logged out' };
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Public()
@@ -126,40 +155,66 @@ export class AuthController {
     @Post('refresh')
     @HttpCode(200)
     async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
-        const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
-        const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
-
-        const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
-        const rawSameSite = String(process.env.COOKIE_SAMESITE ?? 'lax').toLowerCase();
-        const sameSite = (rawSameSite === 'strict' ? 'strict' : 'lax') as 'lax' | 'strict';
-
-        const oldRefresh = req.cookies?.[refreshName];
-        if (!oldRefresh)
-            throw new UnauthorizedException('Invalid Credentials');
-
-        const { accessToken, refreshToken } = await this.authService.refresh(oldRefresh);
-
-        res.cookie(accessName, accessToken, {
-            httpOnly: true,
-            secure,
-            sameSite,
-            path: '/',
-            maxAge: Number(process.env.ACCESS_TOKEN_EXPIRES_IN_SECONDS ?? 900) * 1000,
+        const log = new LoggingHandler(this.logger, {
+            userData: null,
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null,
+            httpMethod: req.method,
         });
 
-        res.cookie(refreshName, refreshToken, {
-            httpOnly: true,
-            secure,
-            sameSite,
-            path: '/api/auth',
-            maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
-        });
+        try {
+            const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
+            const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 
-        return { message: 'Refresh' };
+            const secure = (process.env.COOKIE_SECURE ?? 'false') === 'true';
+            const rawSameSite = String(process.env.COOKIE_SAMESITE ?? 'lax').toLowerCase();
+            const sameSite = (rawSameSite === 'strict' ? 'strict' : 'lax') as 'lax' | 'strict';
+
+            const oldRefresh = req.cookies?.[refreshName];
+            if (!oldRefresh)
+                throw new UnauthorizedException('Invalid Credentials');
+
+            const { accessToken, refreshToken } = await this.authService.refresh(oldRefresh);
+
+            res.cookie(accessName, accessToken, {
+                httpOnly: true,
+                secure,
+                sameSite,
+                path: '/',
+                maxAge: Number(process.env.ACCESS_TOKEN_EXPIRES_IN_SECONDS ?? 900) * 1000,
+            });
+
+            res.cookie(refreshName, refreshToken, {
+                httpOnly: true,
+                secure,
+                sameSite,
+                path: '/api/auth',
+                maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
+            });
+
+            log.Update('httpResponse', 200).Send();
+            return { message: 'Refresh' };
+        } catch (e) {
+            log.Update('httpResponse', 401).Update('level', 'warn').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Get('me')
     me(@Req() req: RequestWithCookies) {
+        const userId = req.user?.sub ? String(req.user.sub) : undefined;
+        const log = new LoggingHandler(this.logger, {
+            userData: userId ? { username: userId } : null,
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: 200,
+            httpMethod: req.method,
+            userId,
+        });
+        log.Send();
         return { user: req.user };
     }
 }

@@ -1,15 +1,29 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Logger, Req } from '@nestjs/common';
+import { LoggingHandler } from './modules/logger/LoggingHandler';
+
+type RequestWithUser = Request & { user?: any; method: string; originalUrl: string };
 
 @Controller()
 export class AppController {
-  /**
-   * Basic health endpoint.
-   * With global prefix `api`, this responds on GET /api with HTTP 200.
-   */
-  @Get()
-  health() {
-    return { status: 'ok' };
-  }
+    private readonly logger = new Logger(AppController.name);
+
+    /**
+     * Basic health endpoint.
+     * With global prefix `api`, this responds on GET /api with HTTP 200.
+     */
+    @Get()
+    health(@Req() req: RequestWithUser) {
+        const log = new LoggingHandler(this.logger, {
+            userData: null,
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: 200,
+            httpMethod: req.method,
+        });
+        log.Send();
+        return { status: 'ok' };
+    }
 }
 
 
