@@ -13,14 +13,14 @@ export class StudentProfile {
     @JoinColumn({ name: 'user_id' })
     user!: User;
 
-    @Column({ nullable: true })
-    interests?: string;
+    @Column({ nullable: true, type: 'text' })
+    interests?: string | null;
 
-    @Column({ nullable: true })
-    merits?: string;
+    @Column({ nullable: true, type: 'text' })
+    merits?: string | null;
 
-    @Column({ nullable: true })
-    goals?: string;
+    @Column({ nullable: true, type: 'text' })
+    goals?: string | null;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;
