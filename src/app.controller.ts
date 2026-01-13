@@ -14,10 +14,8 @@ export class AppController {
     @Get()
     health(@Req() req: RequestWithUser) {
         const log = new LoggingHandler(this.logger, {
-            userData: null,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
             httpResponse: 200,
             httpMethod: req.method,
         });

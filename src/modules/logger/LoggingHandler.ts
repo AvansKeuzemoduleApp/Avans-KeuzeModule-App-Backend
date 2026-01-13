@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { LoggerObject } from "./dto/logger-object.dto";
+import { LoggerObject, LoggerObjectMapped } from "./dto/logger-object.dto";
 
 export class LoggingHandler {
     logger: Logger;
@@ -26,8 +26,23 @@ export class LoggingHandler {
         return this;
     }
 
+    private Mapper(): LoggerObjectMapped {
+        return {
+            timestamp: this.data.timestamp,
+            userData: this.data.userData ?? null,
+            level: this.data.level,
+            codeLocation: this.data.codeLocation,
+            httpResponse: this.data.httpResponse ?? null,
+            httpMethod: this.data.httpMethod ?? null,
+            requestBody: this.data.requestBody ?? null,
+            errorMessage: this.data.errorMessage ?? null,
+            programmerNote: this.data.programmerNote ?? null,
+            responseMessage: this.data.responseMessage ?? null
+        }
+    }
+
     public Send() {
-        const converted = this.data
+        const converted = this.Mapper()
         switch (this.data.level) {
             case 'warn':
                 this.logger.warn(converted);

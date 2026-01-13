@@ -24,13 +24,10 @@ export class ModuleController {
     async findAll(@Req() req: RequestWithUser, @Query() query: QueryModuleDto) {
         const userId = req.user!.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: { username: userId },
+            userData: { userId: userId },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
         });
 
         try {
@@ -51,13 +48,10 @@ export class ModuleController {
     ) {
         const userId = req.user?.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: userId ? { username: userId } : null,
+            userData: userId ? { userId: userId } : undefined,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
         });
 
         try {

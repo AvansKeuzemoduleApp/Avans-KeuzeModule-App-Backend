@@ -22,13 +22,10 @@ export class StudentFavouriteController {
 
         const userId = req.user.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: { username: userId },
+            userData: { userId: userId },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
             requestBody: { moduleId: dto.moduleId },
         });
 
@@ -53,13 +50,10 @@ export class StudentFavouriteController {
 
         const userId = req.user.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: { username: userId },
+            userData: { userId: userId },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
             requestBody: { moduleId },
         });
 

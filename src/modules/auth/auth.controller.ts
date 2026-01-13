@@ -37,8 +37,6 @@ export class AuthController {
             userData: { username: dto.email },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
         });
 
@@ -68,8 +66,6 @@ export class AuthController {
             userData: { username: dto.email },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
         });
         try {
@@ -118,13 +114,10 @@ export class AuthController {
     async logout(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
         const userId = req.user?.sub ? String(req.user.sub) : undefined;
         const log = new LoggingHandler(this.logger, {
-            userData: userId ? { username: userId } : null,
+            userData: userId ? { userId: userId } : undefined,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
         });
 
         try {
@@ -156,11 +149,8 @@ export class AuthController {
     @HttpCode(200)
     async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
         const log = new LoggingHandler(this.logger, {
-            userData: null,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
         });
 
@@ -206,13 +196,11 @@ export class AuthController {
     me(@Req() req: RequestWithCookies) {
         const userId = req.user?.sub ? String(req.user.sub) : undefined;
         const log = new LoggingHandler(this.logger, {
-            userData: userId ? { username: userId } : null,
+            userData: userId ? { userId: userId } : undefined,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
             httpResponse: 200,
-            httpMethod: req.method,
-            userId,
+            httpMethod: req.method
         });
         log.Send();
         return { user: req.user };

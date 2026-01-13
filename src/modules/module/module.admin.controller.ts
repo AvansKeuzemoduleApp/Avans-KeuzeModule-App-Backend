@@ -21,13 +21,10 @@ export class ModuleAdminController {
     async create(@Body() dto: CreateModuleDto, @Req() req: RequestWithUser) {
         const userId = req.user?.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: userId ? { username: userId } : null,
+            userData: userId ? { userId: userId } : undefined,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
             requestBody: { name: dto.name },
         });
 
@@ -45,13 +42,10 @@ export class ModuleAdminController {
     async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateModuleDto, @Req() req: RequestWithUser) {
         const userId = req.user?.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: userId ? { username: userId } : null,
+            userData: userId ? { userId: userId } : undefined,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
             requestBody: { moduleId: id },
         });
 
@@ -69,13 +63,10 @@ export class ModuleAdminController {
     async remove(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
         const userId = req.user?.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: userId ? { username: userId } : null,
+            userData: userId ? { userId: userId } : undefined,
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
             requestBody: { moduleId: id },
         });
 

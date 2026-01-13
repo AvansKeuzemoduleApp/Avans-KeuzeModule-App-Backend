@@ -19,13 +19,10 @@ export class ProfileController {
 
         const userId = req.user.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: { username: userId },
+            userData: { userId: userId },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
         });
 
         try {
@@ -49,13 +46,10 @@ export class ProfileController {
 
         const userId = req.user.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: { username: userId },
+            userData: { userId: userId },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
             httpMethod: req.method,
-            userId,
         });
 
         try {

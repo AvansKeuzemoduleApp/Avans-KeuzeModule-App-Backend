@@ -20,13 +20,10 @@ export class RecommendationController {
         }
 
         const log = new LoggingHandler(this.logger, {
-            userData: { username: userId },
+            userData: { userId: userId },
             level: "log",
             codeLocation: req.originalUrl,
-            isResponseLog: true,
-            httpResponse: null,
-            httpMethod: req.method,
-            userId,
+            httpMethod: req.method
         });
 
         try {
