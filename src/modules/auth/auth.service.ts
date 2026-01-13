@@ -54,16 +54,15 @@ export class AuthService {
         }
     }
 
-    private normalizeEmail(email: string): string{
+    private normalizeEmail(email: string): string {
         return (email ?? '').trim().toLowerCase();
     }
 
-    private isDuplicateKeyError(err: any): boolean{
+    private isDuplicateKeyError(err: any): boolean {
         // Duplicate Key Error Code Handling
         const code = err?.code;
         const erno = err?.errno;
         const sqlState = err?.sqlState;
-        const message = (err?.message ?? '') as string;
 
         // MySQL/MariaDB
         if (code === 'ER_DUP_ENTRY' || erno === 1062 || sqlState === '23000') return true;
@@ -86,7 +85,7 @@ export class AuthService {
                 return;
             }
 
-        throw err;
+            throw err;
         }
 
         if (user) {

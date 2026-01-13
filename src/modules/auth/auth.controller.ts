@@ -45,7 +45,7 @@ export class AuthController {
         @Res({ passthrough: true }) res: Response,
     ) {
         const ip = this.getClientIp(req);
-        const { key, backoffMs } = this.loginProtection.check(ip);
+        const { key } = this.loginProtection.check(ip);
 
         try {
             const { accessToken, refreshToken } = await this.authService.login(dto);
