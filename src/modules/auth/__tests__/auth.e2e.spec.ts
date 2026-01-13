@@ -38,8 +38,6 @@ describe('Auth E2E Tests', () => {
                         password: config.get('DB_PASSWORD') || '',
                         database: config.get('DB_NAME') || 'keuzekompas_test',
                         autoLoadEntities: true,
-                        synchronize: true,
-                        dropSchema: true,
                         logging: false,
                     }),
                 }),
