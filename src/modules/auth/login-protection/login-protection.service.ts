@@ -21,7 +21,7 @@ export class LoginProtectionService {
         return { key, backoffMs };
     }
 
-    recordSuccess(key: string): void { 
+    recordSuccess(key: string): void {
         this.attempts.delete(key);
     }
 
@@ -46,15 +46,15 @@ export class LoginProtectionService {
         entry.count += 1;
     }
 
-    getBackoff(key: string): number { 
+    getBackoff(key: string): number {
         const entry = this.attempts.get(key);
 
         if (!entry || entry.count < this.lockAfterFails)
             return 0;
 
 
-        // Exponential Backoff: 2^(attemps - lockAfterFails) seconds
-        // Example: lockAfterFials=10, attempts = 11 => 2^1 = 2 seconds
+        // Exponential Backoff: 2^(attempts - lockAfterFails) seconds
+        // Example: lockAfterFails=10, attempts = 11 => 2^1 = 2 seconds
         const exponentialMs = Math.pow(2, entry.count - this.lockAfterFails) * 1000;
 
         return Math.min(exponentialMs, this.windowMs);
