@@ -27,7 +27,7 @@ export class LoggingHandler {
     }
 
     public Send() {
-        const converted = JSON.stringify(this.data)
+        const converted = this.data
         switch (this.data.level) {
             case 'warn':
                 this.logger.warn(converted);

@@ -3,11 +3,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { CustomLogger } from './modules/logger/logger.service';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule, {
-        logger: ['error', 'warn', 'log'],
-    });
+    const app = await NestFactory.create(AppModule);
+    app.useLogger(new CustomLogger());
     app.setGlobalPrefix('api');
 
     const expressApp = app.getHttpAdapter().getInstance();
