@@ -47,11 +47,17 @@ export class ProfileController {
 
         const userId = req.user.sub;
         const log = new LoggingHandler(this.logger, {
-            userData: { userId: userId },
+            userData: {
+                userId: userId,
+                requestGoals: dto.goals != null ? dto.goals : undefined,
+                requestMerits: dto.merits != null ? dto.merits : undefined,
+                requestInterests: dto.interests != null ? dto.interests : undefined
+            },
             level: "log",
             codeLocation: req.path,
             originalUrl: req.originalUrl,
             httpMethod: req.method,
+            securityAlert: true
         });
 
         try {

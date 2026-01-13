@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { LoggerObject, LoggerObjectMapped } from "./dto/logger-object.dto";
+import { LoggerModuleDataMapped, LoggerObject, LoggerObjectMapped, LoggerUserDataMapped } from "./dto/logger-object.dto";
 
 export class LoggingHandler {
     logger: Logger;
@@ -27,9 +27,38 @@ export class LoggingHandler {
     }
 
     private Mapper(): LoggerObjectMapped {
+        let userData: LoggerUserDataMapped | null = null;
+        let moduleData: LoggerModuleDataMapped | null = null;
+        if (this.data.userData) {
+            userData = {
+                userId: this.data.userData.userId ?? null,
+                username: this.data.userData.username ?? null,
+                requestInterests: this.data.userData.requestInterests ?? null,
+                requestMerits: this.data.userData.requestMerits ?? null,
+                requestGoals: this.data.userData.requestGoals ?? null,
+            }
+        }
+        if (this.data.moduleData) {
+            moduleData = {
+                moduleId: this.data.moduleData.moduleId ?? null,
+                name: this.data.moduleData.name ?? null,
+                requestShortdescription: this.data.moduleData.requestShortdescription ?? null,
+                requestDescription: this.data.moduleData.requestDescription ?? null,
+                requestStudycredit: this.data.moduleData.requestStudycredit ?? null,
+                requestLocation: this.data.moduleData.requestLocation ?? null,
+                requestContact_id: this.data.moduleData.requestContact_id ?? null,
+                requestLevel: this.data.moduleData.requestLevel ?? null,
+                requestLearningoutcomes: this.data.moduleData.requestLearningoutcomes ?? null,
+                requestModule_tags: this.data.moduleData.requestModule_tags ?? null,
+                requestPopularity_score: this.data.moduleData.requestPopularity_score ?? null,
+                requestEstimated_difficulty: this.data.moduleData.requestEstimated_difficulty ?? null,
+                requestAvailable_spots: this.data.moduleData.requestAvailable_spots ?? null,
+                requestStart_date: this.data.moduleData.requestStart_date ?? null,
+            }
+        }
         return {
             timestamp: this.data.timestamp,
-            userData: this.data.userData ?? null,
+            userData: userData,
             level: this.data.level,
             codeLocation: this.data.codeLocation,
             httpResponse: this.data.httpResponse ?? null,
@@ -39,6 +68,8 @@ export class LoggingHandler {
             programmerNote: this.data.programmerNote ?? null,
             responseMessage: this.data.responseMessage ?? null,
             originalUrl: this.data.originalUrl ?? null,
+            securityAlert: this.data.securityAlert ?? false,
+            moduleData: moduleData
         }
     }
 

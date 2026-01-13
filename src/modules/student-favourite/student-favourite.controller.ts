@@ -28,6 +28,10 @@ export class StudentFavouriteController {
             originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId: dto.moduleId },
+            securityAlert: true,
+            moduleData: {
+                moduleId: dto.moduleId
+            }
         });
 
         try {
@@ -57,6 +61,10 @@ export class StudentFavouriteController {
             originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId },
+            securityAlert: true,
+            moduleData: {
+                moduleId: moduleId
+            }
         });
 
         try {

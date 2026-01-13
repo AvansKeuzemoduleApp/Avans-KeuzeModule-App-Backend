@@ -6,6 +6,8 @@ import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { ModuleService } from './module.service';
 import { LoggingHandler } from '../logger/LoggingHandler';
+import { ModuleMapper } from './mappers/toModuleDetailDtoMapper';
+import { ModuleLogMapper } from '../logger/helpers/module-log-mapper';
 
 type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
@@ -27,6 +29,8 @@ export class ModuleAdminController {
             originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { name: dto.name },
+            securityAlert: true,
+            moduleData: ModuleLogMapper.CreateUpdateModule(dto)
         });
 
         try {
@@ -49,6 +53,8 @@ export class ModuleAdminController {
             originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId: id },
+            securityAlert: true,
+            moduleData: ModuleLogMapper.CreateUpdateModule(dto)
         });
 
         try {
@@ -71,6 +77,10 @@ export class ModuleAdminController {
             originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId: id },
+            securityAlert: true,
+            moduleData: {
+                moduleId: id
+            }
         });
 
         try {

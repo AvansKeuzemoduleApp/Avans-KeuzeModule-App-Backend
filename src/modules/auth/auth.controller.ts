@@ -39,6 +39,7 @@ export class AuthController {
             codeLocation: req.path,
             originalUrl: req.originalUrl,
             httpMethod: req.method,
+            securityAlert: true
         });
 
         try {
@@ -96,7 +97,7 @@ export class AuthController {
                 path: '/api/auth',
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
-            log.Update('httpResponse', 200).Send();
+            log.Update('httpResponse', 200).Update('securityAlert', true).Send();
             return { message: 'Login Successful' };
         } catch (e) {
             this.loginProtection.recordFailure(key);
@@ -121,6 +122,7 @@ export class AuthController {
             codeLocation: req.path,
             originalUrl: req.originalUrl,
             httpMethod: req.method,
+            securityAlert: true
         });
 
         try {
