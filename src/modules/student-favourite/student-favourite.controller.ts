@@ -3,7 +3,7 @@ import { StudentFavouriteService } from './student-favourite.service';
 import { AddFavouriteDto } from './dto/add-favourite.dto';
 import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
 @Controller('student-favourite')
 export class StudentFavouriteController {
@@ -24,7 +24,8 @@ export class StudentFavouriteController {
         const log = new LoggingHandler(this.logger, {
             userData: { userId: userId },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId: dto.moduleId },
         });
@@ -52,7 +53,8 @@ export class StudentFavouriteController {
         const log = new LoggingHandler(this.logger, {
             userData: { userId: userId },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId },
         });

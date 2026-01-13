@@ -12,7 +12,7 @@ import { Public } from '../auth/guards/public.decorator';
 import { QueryModuleDto } from './dto/query-module.dto';
 import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
 @Controller('modules')
 export class ModuleController {
@@ -26,7 +26,8 @@ export class ModuleController {
         const log = new LoggingHandler(this.logger, {
             userData: { userId: userId },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
 
@@ -50,7 +51,8 @@ export class ModuleController {
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
 

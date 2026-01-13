@@ -3,7 +3,7 @@ import { ProfileService } from './profile.service';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
 import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
 @Controller('profile')
 export class ProfileController {
@@ -21,7 +21,8 @@ export class ProfileController {
         const log = new LoggingHandler(this.logger, {
             userData: { userId: userId },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
 
@@ -48,7 +49,8 @@ export class ProfileController {
         const log = new LoggingHandler(this.logger, {
             userData: { userId: userId },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
 

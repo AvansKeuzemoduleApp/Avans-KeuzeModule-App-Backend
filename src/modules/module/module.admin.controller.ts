@@ -7,7 +7,7 @@ import { UpdateModuleDto } from './dto/update-module.dto';
 import { ModuleService } from './module.service';
 import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
 @UseGuards(JwtCookieAuthGuard, RolesGuard)
 @Roles('teacher')
@@ -23,7 +23,8 @@ export class ModuleAdminController {
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { name: dto.name },
         });
@@ -44,7 +45,8 @@ export class ModuleAdminController {
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId: id },
         });
@@ -65,7 +67,8 @@ export class ModuleAdminController {
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
             requestBody: { moduleId: id },
         });

@@ -1,7 +1,7 @@
 import { Controller, Get, Logger, Req } from '@nestjs/common';
 import { LoggingHandler } from './modules/logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: any; method: string; originalUrl: string };
+type RequestWithUser = Request & { user?: any; method: string; originalUrl: string; path: string };
 
 @Controller()
 export class AppController {
@@ -15,7 +15,8 @@ export class AppController {
     health(@Req() req: RequestWithUser) {
         const log = new LoggingHandler(this.logger, {
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpResponse: 200,
             httpMethod: req.method,
         });

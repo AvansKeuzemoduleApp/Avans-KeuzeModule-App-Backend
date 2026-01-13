@@ -9,6 +9,7 @@ export interface LoggerObject {
     errorMessage?: string; // error details if applicable
     programmerNote?: string; // a comment that a programmer can add to this log statement
     responseMessage?: string; // the response message given to the user
+    originalUrl?: string;
 }
 
 export interface LoggerObjectMapped {
@@ -22,6 +23,7 @@ export interface LoggerObjectMapped {
     errorMessage: string | null; // error details if applicable
     programmerNote: string | null; // a comment that a programmer can add to this log statement
     responseMessage: string | null; // the response message given to the user
+    originalUrl: string | null;
 }
 
 export interface LoggerUserData {

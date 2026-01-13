@@ -28,7 +28,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 // Log 5xx errors server-side
                 new LoggingHandler(this.logger, {
                     level: 'error',
-                    codeLocation: `${req?.originalUrl}`,
+                    codeLocation: req.path,
+                    originalUrl: req.originalUrl,
                     httpResponse: status,
                     httpMethod: `${req?.method}`,
                     errorMessage: (exception as any)?.stack ?? String(exception)
@@ -40,7 +41,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 const msg = response?.message ?? response;
                 new LoggingHandler(this.logger, {
                     level: 'warn',
-                    codeLocation: `${req?.originalUrl}`,
+                    codeLocation: req.path,
+                    originalUrl: req.originalUrl,
                     httpResponse: status,
                     httpMethod: `${req?.method}`,
                     errorMessage: (exception as any)?.stack ?? String(exception),
@@ -59,7 +61,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
             // Log full error server-side, return generic message to client
             new LoggingHandler(this.logger, {
                 level: 'error',
-                codeLocation: `${req?.originalUrl}`,
+                codeLocation: req.path,
+                originalUrl: req.originalUrl,
                 httpResponse: status,
                 httpMethod: `${req?.method}`,
                 errorMessage: (exception as any)?.stack ?? String(exception)

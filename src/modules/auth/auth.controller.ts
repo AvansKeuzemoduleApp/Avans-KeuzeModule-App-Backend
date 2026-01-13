@@ -36,7 +36,8 @@ export class AuthController {
         const log = new LoggingHandler(this.logger, {
             userData: { username: dto.email },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
 
@@ -65,7 +66,8 @@ export class AuthController {
         const log = new LoggingHandler(this.logger, {
             userData: { username: dto.email },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
         try {
@@ -116,7 +118,8 @@ export class AuthController {
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
 
@@ -150,7 +153,8 @@ export class AuthController {
     async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
         const log = new LoggingHandler(this.logger, {
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
 
@@ -198,7 +202,8 @@ export class AuthController {
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpResponse: 200,
             httpMethod: req.method
         });

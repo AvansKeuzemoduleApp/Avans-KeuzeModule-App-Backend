@@ -37,7 +37,8 @@ export class LoggingHandler {
             requestBody: this.data.requestBody ?? null,
             errorMessage: this.data.errorMessage ?? null,
             programmerNote: this.data.programmerNote ?? null,
-            responseMessage: this.data.responseMessage ?? null
+            responseMessage: this.data.responseMessage ?? null,
+            originalUrl: this.data.originalUrl ?? null,
         }
     }
 

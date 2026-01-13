@@ -4,7 +4,7 @@ import { RecommendationResponseDto } from './dto/recommendation-response.dto';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
 import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
 @Controller('recommendation')
 export class RecommendationController {
@@ -22,7 +22,8 @@ export class RecommendationController {
         const log = new LoggingHandler(this.logger, {
             userData: { userId: userId },
             level: "log",
-            codeLocation: req.originalUrl,
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
             httpMethod: req.method
         });
 
