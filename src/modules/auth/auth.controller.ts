@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Res, Req, Get, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res, Req, Get, UnauthorizedException, Logger } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -6,11 +6,13 @@ import { LoginDto } from './dto/login.dto'
 import { Public } from './guards/public.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { LoginProtectionService } from './login-protection/login-protection.service';
+import { LoggingHandler } from '../logger/LoggingHandler';
 
 type RequestWithCookies = Request & { cookies?: Record<string, string>; user?: any };
 
 @Controller('auth')
 export class AuthController {
+    private readonly logger = new Logger(AuthController.name);
     constructor(
         private readonly authService: AuthService,
         private readonly loginProtection: LoginProtectionService,
@@ -47,6 +49,15 @@ export class AuthController {
         const ip = this.getClientIp(req);
         const { key, backoffMs } = this.loginProtection.check(ip);
 
+        const log = new LoggingHandler(this.logger, {
+            userData: {
+                username: dto.email
+            },
+            level: "log",
+            codeLocation: req.originalUrl,
+            isResponseLog: true,
+            httpResponse: null
+        });
         try {
             const { accessToken, refreshToken } = await this.authService.login(dto);
             this.loginProtection.recordSuccess(key);
@@ -73,7 +84,7 @@ export class AuthController {
                 path: '/api/auth',
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
-
+            log.Update('httpResponse', 200).Send();
             return { message: 'Login Successful' };
         } catch (e) {
             this.loginProtection.recordFailure(key);
@@ -83,7 +94,7 @@ export class AuthController {
             if (backoffMs > 0) {
                 res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
             }
-
+            log.Update('httpResponse', 500).Send();
             throw e;
         }
     }
