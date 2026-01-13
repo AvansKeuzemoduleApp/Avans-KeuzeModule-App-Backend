@@ -5,32 +5,32 @@ import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
+    const app = await NestFactory.create(AppModule);
+    app.setGlobalPrefix('api');
 
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set('trust proxy', 'loopback');
+    const expressApp = app.getHttpAdapter().getInstance();
+    expressApp.set('trust proxy', 'loopback');
 
-  app.use(cookieParser());
-  app.useGlobalFilters(new AllExceptionsFilter());
+    app.use(cookieParser());
+    app.useGlobalFilters(new AllExceptionsFilter());
 
-  const corsOrigins =
-    process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim().length > 0 ? 
-      process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean) : ['http://localhost:5173'];
+    const corsOrigins =
+        process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim().length > 0 ?
+            process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean) : ['http://localhost:5173'];
 
-  app.enableCors({
-    origin: corsOrigins,
-    credentials: true,
-  })
+    app.enableCors({
+        origin: corsOrigins,
+        credentials: true,
+    });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
+        }),
+    );
 
-  await app.listen(process.env.PORT ?? 3000);
+    await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

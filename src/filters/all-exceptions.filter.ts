@@ -16,8 +16,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
             message: 'Internal server error',
             path: req?.url,
             timestamp: new Date().toISOString(),
-        };  
-    
+        };
+
         if (exception instanceof HttpException) {
             status = exception.getStatus();
             const response = exception.getResponse() as any;
@@ -33,23 +33,23 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
                 body = { ...body, message: 'Internal server error' };
 
-        } else {
-            const msg = response?.message ?? response;
-            body = {
-                statusCode: status,
-                message: msg,
-                error: response?.error,
-                path: req?.url,
-                timestamp: new Date().toISOString(),
+            } else {
+                const msg = response?.message ?? response;
+                body = {
+                    statusCode: status,
+                    message: msg,
+                    error: response?.error,
+                    path: req?.url,
+                    timestamp: new Date().toISOString(),
                 };
             }
         } else {
-        // Log full error server-side, return generic message to client
-        this.logger.error(
-            `Unhandled exception on ${req?.method} ${req?.url}`,
-            (exception as any)?.stack ?? String(exception),
-        );
-    }
+            // Log full error server-side, return generic message to client
+            this.logger.error(
+                `Unhandled exception on ${req?.method} ${req?.url}`,
+                (exception as any)?.stack ?? String(exception),
+            );
+        }
 
         res.status(status).json(body);
     }

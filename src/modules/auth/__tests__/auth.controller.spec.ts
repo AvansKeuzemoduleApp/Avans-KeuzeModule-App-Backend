@@ -102,8 +102,8 @@ describe('AuthController (Integration)', () => {
                     password: 'SecureP@ssw0rd!',
                 })
                 .expect(400);
-                expect(mockAuthService.register).not.toHaveBeenCalled();
-            });
+            expect(mockAuthService.register).not.toHaveBeenCalled();
+        });
 
         it('Should validate password strength', async () => {
             await request(app.getHttpServer())
@@ -114,10 +114,10 @@ describe('AuthController (Integration)', () => {
                 })
                 .expect(400);
 
-                expect(mockAuthService.register).not.toHaveBeenCalled();
-            });
+            expect(mockAuthService.register).not.toHaveBeenCalled();
+        });
 
-        it('Should retrun 200 even if email already exists (prevent enumeration)', async () => {
+        it('Should return 200 even if email already exists (prevent enumeration)', async () => {
             mockAuthService.register.mockResolvedValueOnce(undefined);
 
             const response = await request(app.getHttpServer())
@@ -128,7 +128,7 @@ describe('AuthController (Integration)', () => {
                 })
                 .expect(200);
 
-                expect(response.body.message).toBe('If registration is possible, the account will be created.');
-            });
-        })
-    });
+            expect(response.body.message).toBe('If registration is possible, the account will be created.');
+        });
+    })
+});

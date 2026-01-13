@@ -9,7 +9,7 @@ export class RefreshTokensService {
     constructor(
         @InjectRepository(RefreshToken)
         private readonly repo: Repository<RefreshToken>,
-    ) {}
+    ) { }
 
     hashToken(token: string): string {
         return crypto.createHash('sha256').update(token).digest('hex');
@@ -20,7 +20,7 @@ export class RefreshTokensService {
     }
 
 
-    async create(userId: string, refreshToken: string, expiresAt: Date): Promise<void>{
+    async create(userId: string, refreshToken: string, expiresAt: Date): Promise<void> {
         const tokenHash = this.hashToken(refreshToken);
 
         const entity = this.repo.create({
@@ -52,7 +52,7 @@ export class RefreshTokensService {
 
     async revoke(token: string): Promise<void> {
         const tokenHash = this.hashToken(token);
-        
+
         const result = await this.repo.update({ tokenHash }, { revokedAt: new Date() });
         if (!result.affected) {
             throw new Error('Refresh token not found or already revoked');
@@ -60,14 +60,14 @@ export class RefreshTokensService {
     }
 
     async revokeAllForUser(userId: string): Promise<void> {
-        const result = await this.repo.update({ userId, }, { revokedAt: new Date() });
+        await this.repo.update({ userId, }, { revokedAt: new Date() });
         // idempotent: ok if user has no tokens
     }
 
     async delete(token: string): Promise<void> {
         const tokenHash = this.hashToken(token);
-        
-        const result = await this.repo.delete({ tokenHash });
+
+        await this.repo.delete({ tokenHash });
         // idempotent: ok if token doesn't exist
     }
 }

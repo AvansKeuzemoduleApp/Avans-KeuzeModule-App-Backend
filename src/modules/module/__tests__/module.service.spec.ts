@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ModuleService } from '../module.service';
 
 describe('ModuleService', () => {
@@ -541,7 +540,7 @@ describe('ModuleService', () => {
 
     describe('contact reference resolution', () => {
         it('should cache contact reference after first resolution', async () => {
-            const { service, dataSource } = makeService();
+            const { dataSource } = makeService();
 
             // First query resolves the contact reference
             dataSource.query

@@ -1,13 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, In, Or, IsNull, MoreThan } from 'typeorm';
+import { Repository, In, Or, IsNull, MoreThan } from 'typeorm';
 import { Module } from '../module/module.entity';
 import { RecommendationCache } from './recommendation-cache.entity';
 import { RecommendationOrder } from './recommendation-order.entity';
 import { ProfileService } from '../profile/profile.service';
 import { RecommendationResponseDto, RecommendedResponseItemDto } from './dto/recommendation-response.dto';
 import { templateResponse } from './dto/template-fastapi-response';
-import { ModuleResponseItemDto } from '../module/dto/module-response.dto';
 import { defaultModuleFilters } from '../module/data/module-filters';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
 import { StudentFavourite } from '../student-favourite/student-favourite.entity';

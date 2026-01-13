@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Res, Req, UseGuards, Get, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res, Req, Get, UnauthorizedException } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -14,7 +14,7 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly loginProtection: LoginProtectionService,
-) {}
+    ) { }
 
     private getClientIp(req: RequestWithCookies): string {
         const forwardedFor = req.headers['x-forwarded-for'];
@@ -74,7 +74,7 @@ export class AuthController {
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
 
-        return { message: 'Login Successful' };
+            return { message: 'Login Successful' };
         } catch (e) {
             this.loginProtection.recordFailure(key);
 
@@ -83,7 +83,7 @@ export class AuthController {
             if (backoffMs > 0) {
                 res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
             }
-            
+
             throw e;
         }
     }
@@ -114,7 +114,7 @@ export class AuthController {
     @Throttle({ default: { limit: 20, ttl: 60 } })
     @Post('refresh')
     @HttpCode(200)
-    async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response){
+    async refresh(@Req() req: RequestWithCookies, @Res({ passthrough: true }) res: Response) {
         const accessName = process.env.AUTH_COOKIE_ACCESS ?? 'access_token';
         const refreshName = process.env.AUTH_COOKIE_REFRESH ?? 'refresh_token';
 

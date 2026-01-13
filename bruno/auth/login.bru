@@ -24,7 +24,7 @@ script:post-response {
     if (accessTokenCookie) {
       const token = accessTokenCookie.split(';')[0].split('=')[1];
       bru.setVar("access_token_cookie", token);
-      console.log("Access token saved:", token);
+      console.log("Access token cookie saved to variable 'access_token_cookie'.");
     }
   }
 }
