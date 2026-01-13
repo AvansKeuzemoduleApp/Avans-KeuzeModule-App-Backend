@@ -1,6 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ModuleService } from '../module.service';
-import { Module } from '../module.entity';
 
 describe('ModuleService', () => {
     const makeService = (overrides?: Partial<{
@@ -106,8 +105,9 @@ describe('ModuleService', () => {
                 start_date: '2026-09-01',
             };
 
-            await expect(service.create(dto)).rejects.toThrow(BadRequestException);
-            await expect(service.create(dto)).rejects.toThrow('Invalid contact_id');
+            const createPromise = service.create(dto);
+            await expect(createPromise).rejects.toThrow(BadRequestException);
+            await expect(createPromise).rejects.toThrow('Invalid contact_id');
         });
 
         it('should call sanitize functions on text fields', async () => {
@@ -277,8 +277,9 @@ describe('ModuleService', () => {
 
             moduleRepo.findOne.mockResolvedValue(null);
 
-            await expect(service.remove(999)).rejects.toThrow(NotFoundException);
-            await expect(service.remove(999)).rejects.toThrow('Module with ID 999 not found');
+            await expect(service.remove(999)).rejects.toThrowError(
+                new NotFoundException('Module with ID 999 not found'),
+            );
         });
     });
 
@@ -511,8 +512,10 @@ describe('ModuleService', () => {
 
             moduleRepo.createQueryBuilder.mockReturnValue(queryBuilder);
 
-            await expect(service.findOne(999, 'user123')).rejects.toThrow(NotFoundException);
-            await expect(service.findOne(999, 'user123')).rejects.toThrow('Module with ID 999 not found');
+            const promise = service.findOne(999, 'user123');
+
+            await expect(promise).rejects.toThrow(NotFoundException);
+            await expect(promise).rejects.toThrow('Module with ID 999 not found');
         });
 
         it('should work without user (public access)', async () => {
