@@ -1,5 +1,5 @@
-import { Controller, Get, Logger, NotFoundException, StreamableFile, Query, BadRequestException, Req, UseGuards } from '@nestjs/common';
-import { createReadStream, existsSync } from 'fs';
+import { Controller, Get, Post, Logger, NotFoundException, StreamableFile, Query, BadRequestException, Req, UseGuards, InternalServerErrorException } from '@nestjs/common';
+import { createReadStream, existsSync, copyFileSync, truncateSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { Transform } from 'stream';
 import { LogFilterEvaluator } from './helpers/log-filter-evaluator';
@@ -108,5 +108,61 @@ export class LoggerController {
             type: 'application/json',
             disposition: 'inline; filename="combined.log"',
         });
+    }
+
+    @Post('archive')
+    archiveLogs(@Req() req: RequestWithUser): { message: string; archiveFile: string } {
+        const logPath = join(process.cwd(), 'logs', 'combined.log');
+        const userId = req.user?.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: userId ? { userId: userId } : undefined,
+            level: "warn",
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
+            httpMethod: req.method,
+            securityAlert: true,
+        });
+
+        if (!existsSync(logPath)) {
+            log.Update("message", `Log file not found: ${logPath}`).Update("httpResponse", 404).Send();
+            throw new NotFoundException('Log file not found');
+        }
+
+        try {
+            // Generate archive filename with current date and timestamp
+            const now = new Date();
+            const dateStr = now.toISOString().replace(/:/g, '-').replace(/\..+/, ''); // Format: YYYY-MM-DDTHH-MM-SS
+            const archiveFilename = `archive-${dateStr}.log`;
+            const archivePath = join(process.cwd(), 'logs', archiveFilename);
+
+            writeFileSync(archivePath, '', { flag: 'wx' });
+
+            copyFileSync(logPath, archivePath);
+
+            truncateSync(logPath, 0);
+
+            log.Update("message", `Logs archived successfully to ${archiveFilename}`)
+                .Update("httpResponse", 200)
+                .UpdateDebug("archiveFile", archiveFilename)
+                .Send();
+
+            return {
+                message: 'Logs archived successfully',
+                archiveFile: archiveFilename,
+            };
+        } catch (error) {
+            if (error.code === 'EEXIST') {
+                log.Update("message", `Archive file already exists for this timestamp, timestamps are captured per second.`)
+                    .Update("httpResponse", 409)
+                    .Send();
+                throw new BadRequestException('Archive file for this timestamp already exists, please don\'t spam this.');
+            }
+
+            log.Update("message", `Failed to archive logs`)
+                .Update("httpResponse", 500)
+                .Update("errorMessage", error)
+                .Send();
+            throw new InternalServerErrorException('Failed to archive logs');
+        }
     }
 }

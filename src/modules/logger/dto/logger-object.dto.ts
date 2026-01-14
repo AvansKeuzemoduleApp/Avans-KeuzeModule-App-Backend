@@ -59,6 +59,7 @@ export interface LoggerDebugData {
     fieldName?: string;
     filterData?: LoggerModuleFilterData;
     filterJson?: string;
+    archiveFile?: string;
 }
 
 export interface LoggerDebugDataMapped {
@@ -66,6 +67,7 @@ export interface LoggerDebugDataMapped {
     fieldName: string | null;
     filterData: LoggerModuleFilterMapped | null;
     filterJson: string | null;
+    archiveFile: string | null;
 }
 
 export interface LoggerModuleFilterData {
