@@ -20,7 +20,7 @@ export class CustomLogger implements LoggerService {
                 }),
                 new winston.transports.File({
                     filename: 'logs/combined.log',
-                    level: 'info',
+                    level: 'debug',
                 }),
                 new winston.transports.Console({
                     format: winston.format.combine(
