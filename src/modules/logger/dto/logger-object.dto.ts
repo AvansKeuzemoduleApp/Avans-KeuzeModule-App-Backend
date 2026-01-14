@@ -57,13 +57,17 @@ export interface LoggerUserDataMapped {
 export interface LoggerDebugData {
     value?: string;
     fieldName?: string;
-    filterData?: LoggerModuleFilterData
+    filterData?: LoggerModuleFilterData;
+    filterJson?: string;
+    archiveFile?: string;
 }
 
 export interface LoggerDebugDataMapped {
     value: string | null;
     fieldName: string | null;
     filterData: LoggerModuleFilterMapped | null;
+    filterJson: string | null;
+    archiveFile: string | null;
 }
 
 export interface LoggerModuleFilterData {

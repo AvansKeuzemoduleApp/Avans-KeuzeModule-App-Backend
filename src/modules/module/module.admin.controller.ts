@@ -27,7 +27,6 @@ export class ModuleAdminController {
             codeLocation: req.path,
             originalUrl: req.originalUrl,
             httpMethod: req.method,
-            requestBody: { name: dto.name },
             securityAlert: true,
             moduleData: ModuleLogMapper.CreateUpdateModule(dto)
         });

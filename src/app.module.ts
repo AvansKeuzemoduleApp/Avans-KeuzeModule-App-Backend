@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ModuleModule } from './modules/module/module.module';
 import { StudentFavouriteModule } from './modules/student-favourite/student-favourite.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
+import { LoggerModule } from './modules/logger/logger.module';
 
 
 @Module({
@@ -38,7 +39,8 @@ import { RecommendationModule } from './modules/recommendation/recommendation.mo
         ProfileModule,
         ModuleModule,
         StudentFavouriteModule,
-        RecommendationModule
+        RecommendationModule,
+        LoggerModule
     ],
 
     controllers: [AppController],
