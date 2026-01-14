@@ -40,7 +40,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
             } else {
                 const msg = response?.message ?? response;
                 new LoggingHandler(this.logger, {
-                    level: 'warn',
+                    level: 'log',
                     codeLocation: req.path,
                     originalUrl: req.originalUrl,
                     httpResponse: status,
