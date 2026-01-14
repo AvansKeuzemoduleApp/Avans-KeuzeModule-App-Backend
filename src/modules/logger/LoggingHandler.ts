@@ -102,7 +102,8 @@ export class LoggingHandler {
             debugObject = {
                 value: this.data.debugObject.value ?? null,
                 fieldName: this.data.debugObject.fieldName ?? null,
-                filterData: filterData
+                filterData: filterData,
+                filterJson: this.data.debugObject.filterJson ?? null
             }
         }
         return {
