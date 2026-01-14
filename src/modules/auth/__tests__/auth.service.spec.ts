@@ -90,7 +90,10 @@ describe('AuthService.register', () => {
 
     beforeEach(() => {
         jest.restoreAllMocks();
-        jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+        jest.spyOn(Logger.prototype, 'log').mockImplementation();
+        jest.spyOn(Logger.prototype, 'error').mockImplementation();
+        jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+        jest.spyOn(Logger.prototype, 'debug').mockImplementation();
     });
 
     it('assigns default student role and creates student profile for a new user', async () => {

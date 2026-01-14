@@ -150,7 +150,7 @@ describe('ModuleAdminController', () => {
             const error = new Error('Create failed');
             mockModuleService.create.mockRejectedValue(error);
 
-            await expect(controller.create(dto)).rejects.toThrow('Create failed');
+            await expect(controller.create(dto, mockRequest)).rejects.toThrow('Create failed');
             expect(mockModuleService.create).toHaveBeenCalledWith(dto);
         });
     });
