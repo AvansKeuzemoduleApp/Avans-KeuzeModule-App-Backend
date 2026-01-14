@@ -1,11 +1,13 @@
 name: Build, Push, and Deploy via SSH (to portainer)
 
 on:
-  push:
-    branches: [main, develop]
+  workflow_run:
+    workflows: ['Semgrep']
+    types: [completed]
 
 jobs:
   build-and-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     env:
