@@ -38,6 +38,7 @@ export interface LoggerUserData {
     requestInterests?: string;
     requestMerits?: string;
     requestGoals?: string;
+    requestRoleName?: string
 }
 
 export interface LoggerUserDataMapped {
@@ -46,6 +47,7 @@ export interface LoggerUserDataMapped {
     requestInterests: string | null;
     requestMerits: string | null;
     requestGoals: string | null;
+    requestRoleName: string | null;
 }
 
 export interface LoggerModuleData {

@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { LoggerModuleDataMapped, LoggerObject, LoggerObjectMapped, LoggerUserDataMapped } from "./dto/logger-object.dto";
+import { LoggerModuleData, LoggerModuleDataMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
 
 export class LoggingHandler {
     logger: Logger;
@@ -26,6 +26,24 @@ export class LoggingHandler {
         return this;
     }
 
+    public UpdateUser<K extends keyof LoggerUserData>(key: K, value: LoggerUserData[K]): LoggingHandler {
+        if (!this.data.userData) {
+            this.data.userData = {};
+        }
+        this.data.userData[key] = value;
+        this.data.timestamp = new Date();
+        return this;
+    }
+
+    public UpdateModule<K extends keyof LoggerModuleData>(key: K, value: LoggerModuleData[K]): LoggingHandler {
+        if (!this.data.moduleData) {
+            this.data.moduleData = {};
+        }
+        this.data.moduleData[key] = value;
+        this.data.timestamp = new Date();
+        return this;
+    }
+
     private Mapper(): LoggerObjectMapped {
         let userData: LoggerUserDataMapped | null = null;
         let moduleData: LoggerModuleDataMapped | null = null;
@@ -36,6 +54,7 @@ export class LoggingHandler {
                 requestInterests: this.data.userData.requestInterests ?? null,
                 requestMerits: this.data.userData.requestMerits ?? null,
                 requestGoals: this.data.userData.requestGoals ?? null,
+                requestRoleName: this.data.userData.requestRoleName ?? null,
             }
         }
         if (this.data.moduleData) {
