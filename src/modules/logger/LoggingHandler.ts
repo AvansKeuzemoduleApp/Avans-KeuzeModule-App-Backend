@@ -55,6 +55,7 @@ export class LoggingHandler {
                 requestMerits: this.data.userData.requestMerits ?? null,
                 requestGoals: this.data.userData.requestGoals ?? null,
                 requestRoleName: this.data.userData.requestRoleName ?? null,
+                refreshTokenUsed: this.data.userData.refreshTokenUsed ?? null,
             }
         }
         if (this.data.moduleData) {

@@ -33,6 +33,14 @@ export class AuthService {
     }
 
     private async assignRoleIfMissing(userId: string, roleName: 'student' | 'teacher'): Promise<void> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'assignRoleIfMissing',
+            userData: {
+                userId: userId,
+                requestRoleName: roleName
+            }
+        });
         const normalizedRoleName = roleName.toLowerCase() as typeof roleName;
 
         const roleRepo = this.dataSource.getRepository(Role);
@@ -40,16 +48,24 @@ export class AuthService {
 
         const role = await roleRepo.findOne({ where: { name: normalizedRoleName } });
         if (!role) {
+            log.Update("errorMessage", `Role '${normalizedRoleName}' not found in roles table`)
+                .Update("level", "error").Send();
             throw new Error(`Role '${normalizedRoleName}' not found in roles table`);
         }
 
         const existing = await userRolesRepo.findOne({ where: { userId, roleId: role.id } });
-        if (existing) return;
+        if (existing) {
+            log.Update("message", "UserRole already exists").Send();
+            return
+        };
 
         try {
             await userRolesRepo.insert({ userId, roleId: role.id });
+            log.Update("message", "UserRole assigned!").Send();
         } catch (err) {
             // Still handle races safely across DBs by ignoring unique violations.
+            log.Update("errorMessage", `${err}`)
+                .Update("level", "error").Update("programmerNote", "Probable Race Condition").Send();
             if (this.isDuplicateKeyError(err)) return;
             throw err;
         }
@@ -157,13 +173,22 @@ export class AuthService {
     }
 
     async login(dto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'login',
+            userData: {
+                username: dto.email
+            }
+        });
         const user = await this.usersService.findByEmail(dto.email);
+        log.UpdateUser("userId", user?.id)
 
         const hashToCheck = user?.passwordHash ?? this.dummyHash;
         const ok = await bcrypt.compare(dto.password, hashToCheck);
 
         if (!user || !ok) {
             // Generic Response
+            log.Update("level", "warn").Update("message", "Invalid Credentials").Send();
             throw new UnauthorizedException('Invalid Credentials');
         }
 
@@ -178,11 +203,19 @@ export class AuthService {
         const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
 
         await this.refreshTokens.create(user.id, refreshToken, expiresAt);
+        log.Update("message", "User Logged In.").Send();
 
         return { accessToken, refreshToken };
     }
 
     async logout(userId?: string, refreshToken?: string): Promise<void> {
+        new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'logout',
+            userData: {
+                userId: userId
+            }
+        }).Send();
         if (refreshToken) {
             // Logout should be idempotent
             await this.refreshTokens.delete(refreshToken).catch(() => undefined);
@@ -198,13 +231,26 @@ export class AuthService {
 
 
     async refresh(refreshToken: string): Promise<{ accessToken: string, refreshToken: string }> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'refresh',
+            userData: {
+                refreshTokenUsed: refreshToken
+            }
+        })
         const rt = await this.refreshTokens.findValid(refreshToken);
-        if (!rt)
+        if (!rt) {
+            log.Update("level", "warn").Update("message", "Refreshtoken not found").Send();
             throw new UnauthorizedException('Invalid Session');
+        }
 
         const user = await this.usersService.findById(rt.userId);
-        if (!user)
+        log.UpdateUser("userId", rt.userId);
+        if (!user) {
+            log.Update("level", "warn").Update("message", "userId not found")
+                .Update("programmerNote", "pretty sure this shoudn't be possible?").Send();
             throw new UnauthorizedException('Invalid Session');
+        }
 
         await this.refreshTokens.delete(refreshToken);
 
@@ -218,6 +264,7 @@ export class AuthService {
             email: user.email,
             tv: user.tokenVersion ?? 0,
         });
+        log.Update("message", "refreshed tokens").Send();
 
         return { accessToken, refreshToken: newRefreshToken };
     }
