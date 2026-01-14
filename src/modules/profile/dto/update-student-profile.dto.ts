@@ -21,7 +21,6 @@ export class UpdateStudentProfileDto {
             maxItemsCount: MAX_INTERESTS_COUNT,
             fieldName: 'Interests',
         },
-        { message: 'Invalid interests format' },
     )
     interests?: string | null;
 
@@ -35,7 +34,6 @@ export class UpdateStudentProfileDto {
             maxItemsCount: MAX_MERITS_COUNT,
             fieldName: 'Merits',
         },
-        { message: 'Invalid merits format' },
     )
     merits?: string | null;
 
@@ -49,7 +47,6 @@ export class UpdateStudentProfileDto {
             maxItemsCount: MAX_GOALS_COUNT,
             fieldName: 'Goals',
         },
-        { message: 'Invalid goals format' },
     )
     goals?: string | null;
 }

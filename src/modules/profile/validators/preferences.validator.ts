@@ -7,8 +7,8 @@ export const MAX_INTERESTS_COUNT = 20;
 export const MAX_MERITS_COUNT = 20;
 export const MAX_GOALS_COUNT = 20;
 
-// Pattern: letters (including accented), spaces, hyphens, and apostrophes
-export const TEXT_ONLY_PATTERN = /^[a-zA-ZÀ-ÿ\s\-';]*$/;
+// Pattern: letters (including accented), spaces, hyphens, and apostrophes (no semicolons)
+export const TEXT_ONLY_PATTERN = /^[a-zA-ZÀ-ÿ\s\-']*$/;
 
 interface PreferencesValidationConfig {
     maxItemLength: number;
@@ -34,11 +34,6 @@ class IsSemicolonSeparatedPreferencesConstraint implements ValidatorConstraintIn
             return false;
         }
 
-        // Check if matches text only pattern
-        if (!TEXT_ONLY_PATTERN.test(value)) {
-            return false;
-        }
-
         // Split by semicolon and filter out empty items
         const items = value.split(';').filter((item) => item.trim().length > 0);
 
@@ -52,10 +47,21 @@ class IsSemicolonSeparatedPreferencesConstraint implements ValidatorConstraintIn
             return false;
         }
 
-        // Check each item is within length constraints
+        // Validate each item individually
         return items.every((item) => {
             const trimmed = item.trim();
-            return trimmed.length >= 1 && trimmed.length <= this.config.maxItemLength;
+            
+            // Check length constraints
+            if (trimmed.length < 1 || trimmed.length > this.config.maxItemLength) {
+                return false;
+            }
+            
+            // Check if item matches text only pattern
+            if (!TEXT_ONLY_PATTERN.test(trimmed)) {
+                return false;
+            }
+            
+            return true;
         });
     }
 
@@ -71,19 +77,18 @@ export function IsSemicolonSeparatedPreferences(
     validationOptions?: ValidationOptions,
 ) {
     return function (target: Object, propertyName: string) {
+        const constraintInstance = new IsSemicolonSeparatedPreferencesConstraint(config);
         registerDecorator({
             target: target.constructor,
             propertyName: propertyName,
             options: validationOptions,
             constraints: [config],
             validator: {
-                validate(value: any, args: any): boolean {
-                    const constraint = new IsSemicolonSeparatedPreferencesConstraint(args.constraints[0]);
-                    return constraint.validate(value);
+                validate(value: any): boolean {
+                    return constraintInstance.validate(value);
                 },
-                defaultMessage(args: any): string {
-                    const constraint = new IsSemicolonSeparatedPreferencesConstraint(args.constraints[0]);
-                    return constraint.defaultMessage();
+                defaultMessage(): string {
+                    return constraintInstance.defaultMessage();
                 },
             },
         });
