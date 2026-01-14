@@ -186,7 +186,8 @@ export class ModuleService {
         this.validateNonEmptyString(dto.level, 'level');
         this.validateNonEmptyString(dto.learningoutcomes, 'learningoutcomes');
 
-        await this.ensureContactExists(dto.contact_id);
+        const contactId = dto.contact_id ?? 1;
+        const estimatedDifficulty = dto.estimated_difficulty ?? 0;
 
         const entity = this.moduleRepo.create({
             name: dto.name,
@@ -194,12 +195,12 @@ export class ModuleService {
             description: dto.description,
             studyCredit: dto.studycredit,
             location: dto.location,
-            contactId: dto.contact_id,
+            contactId,
             level: dto.level,
             learningOutcomes: dto.learningoutcomes,
             moduleTags: dto.module_tags,
             popularityScore: 0,
-            estimatedDifficulty: dto.estimated_difficulty,
+            estimatedDifficulty,
             availableSpots: dto.available_spots,
             startDate: dto.start_date,
         });
@@ -223,10 +224,6 @@ export class ModuleService {
         if (dto.level !== undefined) this.validateNonEmptyString(dto.level, 'level');
         if (dto.learningoutcomes !== undefined)
             this.validateNonEmptyString(dto.learningoutcomes, 'learningoutcomes');
-
-        if (dto.contact_id !== undefined) {
-            await this.ensureContactExists(dto.contact_id);
-        }
 
         const updates: Partial<Module> = {};
 

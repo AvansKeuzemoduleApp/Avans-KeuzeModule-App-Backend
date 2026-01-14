@@ -30,11 +30,6 @@ describe('ModuleService', () => {
         it('should create a module successfully with valid data', async () => {
             const { service, moduleRepo, dataSource } = makeService();
 
-            // Mock contact reference resolution
-            dataSource.query.mockResolvedValueOnce([{ tableName: 'contacts', columnName: 'id' }]);
-            // Mock contact validation
-            dataSource.query.mockResolvedValueOnce([{ one: 1 }]);
-
             const dto = {
                 name: 'Test Module',
                 shortdescription: 'Short desc',
@@ -82,11 +77,8 @@ describe('ModuleService', () => {
             await expect(service.create(dto)).rejects.toThrow('Field "name" must be a non-empty string.');
         });
 
-        it('should throw BadRequestException when contact does not exist', async () => {
-            const { service, dataSource } = makeService();
-
-            // Mock contact validation - contact not found
-            dataSource.query.mockResolvedValueOnce([]);
+        it('should not validate contact_id existence (accept any contact_id)', async () => {
+            const { service, moduleRepo } = makeService();
 
             const dto = {
                 name: 'Test Module',
@@ -103,16 +95,15 @@ describe('ModuleService', () => {
                 start_date: '2026-09-01',
             };
 
-            await expect(service.create(dto)).rejects.toThrow('Invalid contact_id');
+            const createdEntity = { id: 1 };
+            moduleRepo.create.mockReturnValue(createdEntity);
+            moduleRepo.save.mockResolvedValue(createdEntity);
+
+            await expect(service.create(dto)).resolves.toEqual(createdEntity);
         });
 
         it('should call sanitize functions on text fields', async () => {
             const { service, moduleRepo, dataSource } = makeService();
-
-            // Mock contact reference resolution
-            dataSource.query.mockResolvedValueOnce([{ tableName: 'contacts', columnName: 'id' }]);
-            // Mock contact validation
-            dataSource.query.mockResolvedValueOnce([{ one: 1 }]);
 
             const dto = {
                 name: '  Test Module  \r\n',

@@ -148,7 +148,18 @@ export class AuthController {
     }
 
     @Get('me')
-    me(@Req() req: RequestWithCookies) {
-        return { user: req.user };
+    async me(@Req() req: RequestWithCookies) {
+        const user = req.user;
+        const userId = user?.sub ? String(user.sub) : '';
+        const roles = userId ? await this.authService.getRoleNamesForUser(userId) : [];
+
+        return {
+            user: user
+                ? {
+                    ...user,
+                    roles,
+                }
+                : null,
+        };
     }
 }
