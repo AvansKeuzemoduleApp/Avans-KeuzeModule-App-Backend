@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ModuleController } from '../module.controller';
 import { ModuleService } from '../module.service';
 import { QueryModuleDto } from '../dto/query-module.dto';
+import { Logger } from '@nestjs/common';
 
 describe('ModuleController', () => {
     let controller: ModuleController;
@@ -13,6 +14,10 @@ describe('ModuleController', () => {
     };
 
     beforeEach(async () => {
+        jest.spyOn(Logger.prototype, 'log').mockImplementation();
+        jest.spyOn(Logger.prototype, 'error').mockImplementation();
+        jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+
         const module: TestingModule = await Test.createTestingModule({
             controllers: [ModuleController],
             providers: [

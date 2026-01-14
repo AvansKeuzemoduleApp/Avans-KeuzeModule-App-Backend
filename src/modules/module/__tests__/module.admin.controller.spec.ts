@@ -5,6 +5,7 @@ import { CreateModuleDto } from '../dto/create-module.dto';
 import { UpdateModuleDto } from '../dto/update-module.dto';
 import { JwtCookieAuthGuard } from '../../auth/guards/jwt-cookie.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Logger } from '@nestjs/common';
 
 describe('ModuleAdminController', () => {
     let controller: ModuleAdminController;
@@ -16,7 +17,17 @@ describe('ModuleAdminController', () => {
         remove: jest.fn(),
     };
 
+    const mockRequest = {
+        user: { sub: 'test-user-id' },
+        method: 'POST',
+        originalUrl: '/api/admin/modules',
+    } as any;
+
     beforeEach(async () => {
+        jest.spyOn(Logger.prototype, 'log').mockImplementation();
+        jest.spyOn(Logger.prototype, 'error').mockImplementation();
+        jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+
         const module: TestingModule = await Test.createTestingModule({
             controllers: [ModuleAdminController],
             providers: [
@@ -76,7 +87,7 @@ describe('ModuleAdminController', () => {
 
             mockModuleService.create.mockResolvedValue(expectedModule);
 
-            const result = await controller.create(dto);
+            const result = await controller.create(dto, mockRequest);
 
             expect(result).toEqual(expectedModule);
             expect(mockModuleService.create).toHaveBeenCalledWith(dto);
@@ -115,7 +126,7 @@ describe('ModuleAdminController', () => {
 
             mockModuleService.create.mockResolvedValue(expectedModule);
 
-            const result = await controller.create(dto);
+            const result = await controller.create(dto, mockRequest);
 
             expect(result).toEqual(expectedModule);
             expect(mockModuleService.create).toHaveBeenCalledWith(dto);
@@ -139,7 +150,7 @@ describe('ModuleAdminController', () => {
             const error = new Error('Create failed');
             mockModuleService.create.mockRejectedValue(error);
 
-            await expect(controller.create(dto)).rejects.toThrow('Create failed');
+            await expect(controller.create(dto, mockRequest)).rejects.toThrow('Create failed');
             expect(mockModuleService.create).toHaveBeenCalledWith(dto);
         });
     });
@@ -170,7 +181,7 @@ describe('ModuleAdminController', () => {
 
             mockModuleService.update.mockResolvedValue(expectedModule);
 
-            const result = await controller.update(1, dto);
+            const result = await controller.update(1, dto, mockRequest);
 
             expect(result).toEqual(expectedModule);
             expect(mockModuleService.update).toHaveBeenCalledWith(1, dto);
@@ -201,7 +212,7 @@ describe('ModuleAdminController', () => {
 
             mockModuleService.update.mockResolvedValue(expectedModule);
 
-            const result = await controller.update(5, dto);
+            const result = await controller.update(5, dto, mockRequest);
 
             expect(result.availableSpots).toBe(25);
             expect(mockModuleService.update).toHaveBeenCalledWith(5, dto);
@@ -235,7 +246,7 @@ describe('ModuleAdminController', () => {
 
             mockModuleService.update.mockResolvedValue(expectedModule);
 
-            const result = await controller.update(3, dto);
+            const result = await controller.update(3, dto, mockRequest);
 
             expect(result).toEqual(expectedModule);
             expect(mockModuleService.update).toHaveBeenCalledWith(3, dto);
@@ -249,7 +260,7 @@ describe('ModuleAdminController', () => {
             const error = new Error('Module with ID 999 not found');
             mockModuleService.update.mockRejectedValue(error);
 
-            await expect(controller.update(999, dto)).rejects.toThrow('Module with ID 999 not found');
+            await expect(controller.update(999, dto, mockRequest)).rejects.toThrow('Module with ID 999 not found');
             expect(mockModuleService.update).toHaveBeenCalledWith(999, dto);
         });
 
@@ -275,7 +286,7 @@ describe('ModuleAdminController', () => {
 
             mockModuleService.update.mockResolvedValue(expectedModule);
 
-            const result = await controller.update(1, dto);
+            const result = await controller.update(1, dto, mockRequest);
 
             expect(result).toEqual(expectedModule);
             expect(mockModuleService.update).toHaveBeenCalledWith(1, dto);
@@ -286,7 +297,7 @@ describe('ModuleAdminController', () => {
         it('should remove a module by id', async () => {
             mockModuleService.remove.mockResolvedValue(undefined);
 
-            await controller.remove(1);
+            await controller.remove(1, mockRequest);
 
             expect(mockModuleService.remove).toHaveBeenCalledWith(1);
             expect(mockModuleService.remove).toHaveBeenCalledTimes(1);
@@ -295,7 +306,7 @@ describe('ModuleAdminController', () => {
         it('should handle different module ids', async () => {
             mockModuleService.remove.mockResolvedValue(undefined);
 
-            await controller.remove(42);
+            await controller.remove(42, mockRequest);
 
             expect(mockModuleService.remove).toHaveBeenCalledWith(42);
         });
@@ -304,16 +315,16 @@ describe('ModuleAdminController', () => {
             const error = new Error('Module with ID 999 not found');
             mockModuleService.remove.mockRejectedValue(error);
 
-            await expect(controller.remove(999)).rejects.toThrow('Module with ID 999 not found');
+            await expect(controller.remove(999, mockRequest)).rejects.toThrow('Module with ID 999 not found');
             expect(mockModuleService.remove).toHaveBeenCalledWith(999);
         });
 
         it('should successfully remove multiple modules sequentially', async () => {
             mockModuleService.remove.mockResolvedValue(undefined);
 
-            await controller.remove(1);
-            await controller.remove(2);
-            await controller.remove(3);
+            await controller.remove(1, mockRequest);
+            await controller.remove(2, mockRequest);
+            await controller.remove(3, mockRequest);
 
             expect(mockModuleService.remove).toHaveBeenCalledTimes(3);
             expect(mockModuleService.remove).toHaveBeenNthCalledWith(1, 1);
