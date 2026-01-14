@@ -26,7 +26,10 @@ export class CustomLogger implements LoggerService {
                     format: winston.format.combine(
                         winston.format.timestamp(),
                         winston.format.errors({ stack: true }),
-                        winston.format.json()
+                        winston.format.json(),
+                        winston.format.printf((info) => {
+                            return JSON.stringify(info) + '\n';
+                        })
                     ),
                     level: 'warn',
                 }),
@@ -34,27 +37,38 @@ export class CustomLogger implements LoggerService {
         });
     }
 
+    private formatLog(message: any, optionalParams: any[]) {
+        const context = optionalParams.length > 0 ? optionalParams[optionalParams.length - 1] : undefined;
+        const isContext = typeof context === 'string';
+
+        return {
+            message,
+            context: isContext ? context : undefined,
+            ...(!isContext && optionalParams.length > 0 ? { meta: optionalParams } : {}),
+        };
+    }
+
     log(message: any, ...optionalParams: any[]) {
-        this.logger.info(message, ...optionalParams);
+        this.logger.info(this.formatLog(message, optionalParams));
     }
 
     error(message: any, ...optionalParams: any[]) {
-        this.logger.error(message, ...optionalParams);
+        this.logger.error(this.formatLog(message, optionalParams));
     }
 
     warn(message: any, ...optionalParams: any[]) {
-        this.logger.warn(message, ...optionalParams);
+        this.logger.warn(this.formatLog(message, optionalParams));
     }
 
     debug(message: any, ...optionalParams: any[]) {
-        this.logger.debug(message, ...optionalParams);
+        this.logger.debug(this.formatLog(message, optionalParams));
     }
 
     verbose(message: any, ...optionalParams: any[]) {
-        this.logger.verbose(message, ...optionalParams);
+        this.logger.verbose(this.formatLog(message, optionalParams));
     }
 
     fatal(message: any, ...optionalParams: any[]) {
-        this.logger.error(message, ...optionalParams);
+        this.logger.error(this.formatLog(message, optionalParams));
     }
 }
