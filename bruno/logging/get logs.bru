@@ -1,0 +1,48 @@
+meta {
+  name: get logs
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{url}}/logs
+  body: none
+  auth: none
+}
+
+params:query {
+  ~filter: {"level": {"$in": ["error", "warn"]}}
+}
+
+docs {
+  # Get Logs with Filter
+  
+  This endpoint demonstrates various filter options for the logs endpoint.
+  
+  ## Examples:
+  
+  ### Filter by level
+  ```
+  ?filter={"level":"error"}
+  ```
+  
+  ### Filter by nested user data
+  ```
+  ?filter={"userData.userId":"user123"}
+  ```
+  
+  ### Filter by HTTP response code range
+  ```
+  ?filter={"$and":[{"httpResponse":{"$gte":400}},{"httpResponse":{"$lt":500}}]}
+  ```
+  
+  ### Filter with IN operator
+  ```
+  ?filter={"level":{"$in":["error","warn"]}}
+  ```
+  
+  ### Complex OR query
+  ```
+  ?filter={"$or":[{"level":"error"},{"securityAlert":true}]}
+  ```
+}
