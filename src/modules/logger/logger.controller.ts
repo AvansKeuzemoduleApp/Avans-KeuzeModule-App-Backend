@@ -18,9 +18,25 @@ export class LoggerController {
 
         const file = createReadStream(logPath);
         let isFirst = true;
+        const shouldFilterStringMessages = true;
         const transform = new Transform({
             transform(chunk, encoding, callback) {
-                let lines = chunk.toString().split('\n').filter(line => line.trim());
+                let lines = chunk
+                    .toString()
+                    .split('\n')
+                    .filter(line => line.trim());
+
+                if (shouldFilterStringMessages) {
+                    lines = lines.filter(line => {
+                        try {
+                            const parsed = JSON.parse(line);
+                            return typeof parsed.message === 'object';
+                        } catch {
+                            return false;
+                        }
+                    });
+                }
+
                 let modified = lines.join(',\n');
 
                 if (isFirst && modified) {
