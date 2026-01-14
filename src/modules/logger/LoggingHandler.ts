@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { LoggerDebugData, LoggerDebugDataMapped, LoggerModuleData, LoggerModuleDataMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
+import { LoggerDebugData, LoggerDebugDataMapped, LoggerModuleData, LoggerModuleDataMapped, LoggerModuleFilterMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
 
 export class LoggingHandler {
     logger: Logger;
@@ -87,9 +87,22 @@ export class LoggingHandler {
             }
         }
         if (this.data.debugObject) {
+            let filterData: LoggerModuleFilterMapped | null = null;
+            if (this.data.debugObject.filterData) {
+                filterData = {
+                    search: this.data.debugObject.filterData.search ?? null,
+                    location: this.data.debugObject.filterData.location ?? null,
+                    sortBy: this.data.debugObject.filterData.sortBy ?? null,
+                    level: this.data.debugObject.filterData.level ?? null,
+                    studyPoints: this.data.debugObject.filterData.studyPoints ?? null,
+                    favourites: this.data.debugObject.filterData.favourites ?? null,
+                    page: this.data.debugObject.filterData.page ?? null,
+                }
+            }
             debugObject = {
                 value: this.data.debugObject.value ?? null,
-                fieldName: this.data.debugObject.fieldName ?? null
+                fieldName: this.data.debugObject.fieldName ?? null,
+                filterData: filterData
             }
         }
         return {

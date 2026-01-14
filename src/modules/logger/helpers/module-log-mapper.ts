@@ -1,6 +1,8 @@
 import { CreateModuleDto } from "../../module/dto/create-module.dto";
 import { UpdateModuleDto } from "../../module/dto/update-module.dto";
-import { LoggerModuleData } from "../dto/logger-object.dto";
+import { QueryModuleDto } from "../../module/dto/query-module.dto";
+import { QueryRecommendationsDto } from "../../recommendation/dto/query-recomendations.dto";
+import { LoggerModuleData, LoggerModuleFilterData } from "../dto/logger-object.dto";
 
 export class ModuleLogMapper {
     public static CreateUpdateModule(dto: CreateModuleDto | UpdateModuleDto, moduleId?: number): LoggerModuleData {
@@ -18,6 +20,18 @@ export class ModuleLogMapper {
             requestAvailable_spots: dto.available_spots,
             requestStart_date: dto.start_date,
             moduleId: moduleId || undefined
+        };
+    }
+
+    public static QueryModule(dto: QueryModuleDto | QueryRecommendationsDto): LoggerModuleFilterData {
+        return {
+            search: dto.search,
+            location: dto.location,
+            sortBy: 'sortBy' in dto ? dto.sortBy : undefined,
+            level: dto.level,
+            studyPoints: dto.studyPoints,
+            favourites: dto.favourites,
+            page: dto.page
         };
     }
 }

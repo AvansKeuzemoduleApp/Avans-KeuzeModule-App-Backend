@@ -227,6 +227,16 @@ export class ModuleService {
         query: QueryModuleDto,
         user: string | undefined,
     ): Promise<ModuleQueryResponseDto<ModuleResponseItemDto>> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'findAll',
+            userData: {
+                userId: user
+            },
+            debugObject: {
+                filterData: ModuleLogMapper.QueryModule(query)
+            }
+        });
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
             .select('module');
@@ -333,6 +343,7 @@ export class ModuleService {
                 showFavourites: false,
             },
         };
+        log.Update("message", "returned modules successfully").Send();
         return responseObject;
     }
 

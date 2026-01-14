@@ -75,6 +75,13 @@ export class ProfileService {
      */
     async getOrCreateStudentProfile(userId: string) {
         const profile = await this.ensureStudentProfileExists(userId);
+        new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'getOrCreateStudentProfile',
+            userData: {
+                userId: userId
+            }
+        }).Send();
 
         return {
             // id: profile.id,
@@ -106,7 +113,10 @@ export class ProfileService {
             codeLocation: 'updateStudentProfile',
             message: `Updated student profile for user`,
             userData: {
-                userId: userId
+                userId: userId,
+                requestGoals: dto.goals ?? undefined,
+                requestInterests: dto.interests ?? undefined,
+                requestMerits: dto.merits ?? undefined
             },
             securityAlert: true
         }).Send();

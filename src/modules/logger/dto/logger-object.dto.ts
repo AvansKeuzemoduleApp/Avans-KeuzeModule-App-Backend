@@ -55,13 +55,35 @@ export interface LoggerUserDataMapped {
 }
 
 export interface LoggerDebugData {
-    value?: string
-    fieldName?: string
+    value?: string;
+    fieldName?: string;
+    filterData?: LoggerModuleFilterData
 }
 
 export interface LoggerDebugDataMapped {
-    value: string | null
-    fieldName: string | null
+    value: string | null;
+    fieldName: string | null;
+    filterData: LoggerModuleFilterMapped | null;
+}
+
+export interface LoggerModuleFilterData {
+    search?: string;
+    location?: string;
+    sortBy?: string;
+    level?: string;
+    studyPoints?: string;
+    favourites?: boolean;
+    page?: number;
+}
+
+export interface LoggerModuleFilterMapped {
+    search: string | null;
+    location: string | null;
+    sortBy: string | null;
+    level: string | null;
+    studyPoints: string | null;
+    favourites: boolean | null;
+    page: number | null;
 }
 
 export interface LoggerModuleData {
