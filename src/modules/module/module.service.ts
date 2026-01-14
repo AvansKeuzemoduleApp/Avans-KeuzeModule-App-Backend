@@ -137,7 +137,7 @@ export class ModuleService {
         });
 
         new LoggingHandler(this.logger, {
-            level: 'log',
+            level: 'debug',
             codeLocation: 'create',
             moduleData: entity
         }).Send();
@@ -148,7 +148,7 @@ export class ModuleService {
     async update(id: number, dto: UpdateModuleDto): Promise<Module> {
         const entity = await this.moduleRepo.findOne({ where: { id } });
         const log = new LoggingHandler(this.logger, {
-            level: 'log',
+            level: 'debug',
             codeLocation: 'update',
             moduleData: ModuleLogMapper.CreateUpdateModule(dto, id)
         });
@@ -207,7 +207,7 @@ export class ModuleService {
 
     async remove(id: number): Promise<void> {
         const log = new LoggingHandler(this.logger, {
-            level: 'log',
+            level: 'debug',
             codeLocation: 'remove',
             moduleData: {
                 moduleId: id
@@ -341,7 +341,7 @@ export class ModuleService {
         user: string | undefined,
     ): Promise<ModuleDetailDto> {
         const log = new LoggingHandler(this.logger, {
-            level: 'log',
+            level: 'debug',
             codeLocation: 'findOne',
             moduleData: {
                 moduleId: id
