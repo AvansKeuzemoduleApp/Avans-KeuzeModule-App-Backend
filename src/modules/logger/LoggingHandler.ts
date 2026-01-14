@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { LoggerModuleData, LoggerModuleDataMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
+import { LoggerDebugData, LoggerDebugDataMapped, LoggerModuleData, LoggerModuleDataMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
 
 export class LoggingHandler {
     logger: Logger;
@@ -44,9 +44,19 @@ export class LoggingHandler {
         return this;
     }
 
+    public UpdateDebug<K extends keyof LoggerDebugData>(key: K, value: LoggerDebugData[K]): LoggingHandler {
+        if (!this.data.debugObject) {
+            this.data.debugObject = {};
+        }
+        this.data.debugObject[key] = value;
+        this.data.timestamp = new Date();
+        return this;
+    }
+
     private Mapper(): LoggerObjectMapped {
         let userData: LoggerUserDataMapped | null = null;
         let moduleData: LoggerModuleDataMapped | null = null;
+        let debugObject: LoggerDebugDataMapped | null = null;
         if (this.data.userData) {
             userData = {
                 userId: this.data.userData.userId ?? null,
@@ -76,6 +86,12 @@ export class LoggingHandler {
                 requestStart_date: this.data.moduleData.requestStart_date ?? null,
             }
         }
+        if (this.data.debugObject) {
+            debugObject = {
+                value: this.data.debugObject.value ?? null,
+                fieldName: this.data.debugObject.fieldName ?? null
+            }
+        }
         return {
             timestamp: this.data.timestamp,
             userData: userData,
@@ -90,7 +106,8 @@ export class LoggingHandler {
             originalUrl: this.data.originalUrl ?? null,
             securityAlert: this.data.securityAlert ?? false,
             moduleData: moduleData,
-            message: this.data.message ?? null
+            message: this.data.message ?? null,
+            debugObject: debugObject
         }
     }
 

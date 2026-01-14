@@ -13,6 +13,7 @@ export interface LoggerObject {
     securityAlert?: boolean;
     moduleData?: LoggerModuleData;
     message?: string;
+    debugObject?: LoggerDebugData;
 }
 
 export interface LoggerObjectMapped {
@@ -30,6 +31,7 @@ export interface LoggerObjectMapped {
     securityAlert: boolean;
     moduleData: LoggerModuleDataMapped | null;
     message: string | null;
+    debugObject: LoggerDebugDataMapped | null;
 }
 
 export interface LoggerUserData {
@@ -50,6 +52,16 @@ export interface LoggerUserDataMapped {
     requestGoals: string | null;
     requestRoleName: string | null;
     refreshTokenUsed: string | null;
+}
+
+export interface LoggerDebugData {
+    value?: string
+    fieldName?: string
+}
+
+export interface LoggerDebugDataMapped {
+    value: string | null
+    fieldName: string | null
 }
 
 export interface LoggerModuleData {

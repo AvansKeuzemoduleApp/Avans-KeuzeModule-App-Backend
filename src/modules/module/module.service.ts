@@ -36,9 +36,10 @@ export class ModuleService {
             log.UpdateDebug("value", value ?? undefined)
                 .UpdateDebug("fieldName", fieldName).Update("message", `Field "${fieldName}" must be a non-empty string.`).Send();
             throw new BadRequestException(`Field "${fieldName}" must be a non-empty string.`);
-        } else {
-            log.Send();
         }
+        // else {
+        //     log.Send();
+        // }
     }
 
     private sanitizeCreateDto(dto: CreateModuleDto): CreateModuleDto {
@@ -135,12 +136,26 @@ export class ModuleService {
             startDate: dto.start_date,
         });
 
+        new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'create',
+            moduleData: entity
+        }).Send();
+
         return this.moduleRepo.save(entity);
     }
 
     async update(id: number, dto: UpdateModuleDto): Promise<Module> {
         const entity = await this.moduleRepo.findOne({ where: { id } });
-        if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+        const log = new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'update',
+            moduleData: ModuleLogMapper.CreateUpdateModule(dto, id)
+        });
+        if (!entity) {
+            log.Update("message", `Module with ID not found`).Send();
+            throw new NotFoundException(`Module with ID ${id} not found`)
+        };
 
         dto = this.sanitizeUpdateDto(dto);
 
@@ -185,13 +200,25 @@ export class ModuleService {
         }
 
         Object.assign(entity, updates);
+        log.Update("message", "Module Updated").Send();
 
         return this.moduleRepo.save(entity);
     }
 
     async remove(id: number): Promise<void> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'remove',
+            moduleData: {
+                moduleId: id
+            }
+        });
         const entity = await this.moduleRepo.findOne({ where: { id } });
-        if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+        if (!entity) {
+            log.Update("message", `Module with ID not found`).Send()
+            throw new NotFoundException(`Module with ID ${id} not found`);
+        }
+        log.Send();
 
         await this.moduleRepo.remove(entity);
     }
@@ -313,6 +340,16 @@ export class ModuleService {
         id: number,
         user: string | undefined,
     ): Promise<ModuleDetailDto> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'findOne',
+            moduleData: {
+                moduleId: id
+            },
+            userData: {
+                userId: user
+            }
+        });
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
             .select('module');
@@ -339,8 +376,10 @@ export class ModuleService {
             .getRawOne();
 
         if (!result) {
+            log.Update("message", `Module with ID not found`).Send()
             throw new NotFoundException(`Module with ID ${id} not found`);
         }
+        log.Send();
 
         return ModuleMapper.toDetailDto(result);
     }
