@@ -3,9 +3,9 @@ import { registerDecorator, ValidationOptions, ValidatorConstraint, ValidatorCon
 export const INTEREST_MAX_LENGTH = 50;
 export const MERIT_MAX_LENGTH = 50;
 export const GOALS_MAX_LENGTH = 50;
-export const MAX_INTERESTS_COUNT = 10;
-export const MAX_MERITS_COUNT = 10;
-export const MAX_GOALS_COUNT = 10;
+export const MAX_INTERESTS_COUNT = 20;
+export const MAX_MERITS_COUNT = 20;
+export const MAX_GOALS_COUNT = 20;
 
 // Pattern: letters (including accented), spaces, hyphens, and apostrophes
 export const TEXT_ONLY_PATTERN = /^[a-zA-ZÀ-ÿ\s\-';]*$/;
@@ -26,6 +26,11 @@ class IsSemicolonSeparatedPreferencesConstraint implements ValidatorConstraintIn
 
     validate(value: any): boolean {
         if (!value || typeof value !== 'string') {
+            return false;
+        }
+
+        // Must end with semicolon
+        if (!value.endsWith(';')) {
             return false;
         }
 
