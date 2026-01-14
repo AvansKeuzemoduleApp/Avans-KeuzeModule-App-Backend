@@ -9,6 +9,19 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
 
     steps:
       - uses: actions/checkout@v4
@@ -22,3 +35,11 @@ jobs:
         continue-on-error: true
       - name: Run unit tests with coverage
         run: npm run test:cov
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_USER: root
+          DB_PASSWORD: root
+          DB_NAME: test_db
+          BCRYPT_ROUNDS: 10
+          JWT_SECRET: test_secret_key_for_ci
