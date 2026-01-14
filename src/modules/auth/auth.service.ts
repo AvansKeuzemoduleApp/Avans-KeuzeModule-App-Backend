@@ -201,7 +201,7 @@ export class AuthService {
         if (!id) return [];
 
         const userRolesRepo = this.dataSource.getRepository(UserRole);
-        const rows = await userRolesRepo.find({ where: { userId: id } });
+        const rows = await userRolesRepo.find({ where: { userId: id }, relations: ['role'] });
         return rows
             .map((r) => String(r.role?.name ?? '').trim().toLowerCase())
             .filter(Boolean);
