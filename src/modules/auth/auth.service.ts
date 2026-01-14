@@ -10,6 +10,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokensService } from './tokens/refresh-tokens.service';
 import { Role } from './roles/role.entity';
 import { UserRole } from './roles/user-role.entity';
+import { LoggingHandler } from '../logger/LoggingHandler';
 
 @Injectable()
 export class AuthService {
@@ -81,7 +82,16 @@ export class AuthService {
         } catch (err) {
             // Prevent leaking "email already exists" via DB errors
             if (this.isDuplicateKeyError(err)) {
-                this.logger.warn(`Duplicate registration attempt suppressed.`);
+                new LoggingHandler(this.logger, {
+                    level: 'warn',
+                    codeLocation: 'register',
+                    errorMessage: 'Duplicate registration attempt suppressed.',
+                    userData: {
+                        username: dto.email
+                    },
+                    programmerNote: "Prevent leaking \"email already exists\" via DB errors",
+                    securityAlert: true
+                }).Send();
                 return;
             }
 
@@ -121,10 +131,26 @@ export class AuthService {
                         await queryRunner.release();
                     }
                 } catch (rollbackError) {
-                    this.logger.error(`Registration rollback failed: ${rollbackError}`);
+                    new LoggingHandler(this.logger, {
+                        level: 'error',
+                        codeLocation: 'register',
+                        errorMessage: `Registration rollback failed: ${rollbackError}`,
+                        userData: {
+                            username: dto.email
+                        },
+                        securityAlert: true
+                    }).Send();
                 }
 
-                this.logger.error(`Registration post-create failed: ${error}`);
+                new LoggingHandler(this.logger, {
+                    level: 'error',
+                    codeLocation: 'register',
+                    errorMessage: `Registration post-create failed: ${error}`,
+                    userData: {
+                        username: dto.email
+                    },
+                    securityAlert: true
+                }).Send();
                 throw new InternalServerErrorException('Registration failed');
             }
         }

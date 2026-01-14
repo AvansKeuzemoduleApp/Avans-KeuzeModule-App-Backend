@@ -12,6 +12,7 @@ export interface LoggerObject {
     originalUrl?: string;
     securityAlert?: boolean;
     moduleData?: LoggerModuleData;
+    message?: string;
 }
 
 export interface LoggerObjectMapped {
@@ -28,6 +29,7 @@ export interface LoggerObjectMapped {
     originalUrl: string | null;
     securityAlert: boolean;
     moduleData: LoggerModuleDataMapped | null;
+    message: string | null;
 }
 
 export interface LoggerUserData {

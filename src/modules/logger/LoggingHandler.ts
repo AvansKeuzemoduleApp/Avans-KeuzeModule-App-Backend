@@ -69,7 +69,8 @@ export class LoggingHandler {
             responseMessage: this.data.responseMessage ?? null,
             originalUrl: this.data.originalUrl ?? null,
             securityAlert: this.data.securityAlert ?? false,
-            moduleData: moduleData
+            moduleData: moduleData,
+            message: this.data.message ?? null
         }
     }
 
