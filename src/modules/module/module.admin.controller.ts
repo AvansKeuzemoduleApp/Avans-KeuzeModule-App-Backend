@@ -1,29 +1,95 @@
-import { Body, Controller, Delete, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Logger, Param, ParseIntPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtCookieAuthGuard } from '../auth/guards/jwt-cookie.guard';
 import { Roles } from '../auth/guards/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { ModuleService } from './module.service';
+import { LoggingHandler } from '../logger/LoggingHandler';
+import { ModuleMapper } from './mappers/toModuleDetailDtoMapper';
+import { ModuleLogMapper } from '../logger/helpers/module-log-mapper';
+
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
 @UseGuards(JwtCookieAuthGuard, RolesGuard)
 @Roles('teacher')
 @Controller('admin/modules')
 export class ModuleAdminController {
-    constructor(private readonly moduleService: ModuleService) {}
+    private readonly logger = new Logger(ModuleAdminController.name);
+
+    constructor(private readonly moduleService: ModuleService) { }
 
     @Post()
-    create(@Body() dto: CreateModuleDto) {
-        return this.moduleService.create(dto);
+    async create(@Body() dto: CreateModuleDto, @Req() req: RequestWithUser) {
+        const userId = req.user?.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: userId ? { userId: userId } : undefined,
+            level: "log",
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
+            httpMethod: req.method,
+            requestBody: { name: dto.name },
+            securityAlert: true,
+            moduleData: ModuleLogMapper.CreateUpdateModule(dto)
+        });
+
+        try {
+            const result = await this.moduleService.create(dto);
+            log.Update('httpResponse', 201).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Patch(':id')
-    update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateModuleDto) {
-        return this.moduleService.update(id, dto);
+    async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateModuleDto, @Req() req: RequestWithUser) {
+        const userId = req.user?.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: userId ? { userId: userId } : undefined,
+            level: "log",
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
+            httpMethod: req.method,
+            requestBody: { moduleId: id },
+            securityAlert: true,
+            moduleData: ModuleLogMapper.CreateUpdateModule(dto)
+        });
+
+        try {
+            const result = await this.moduleService.update(id, dto);
+            log.Update('httpResponse', 200).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Delete(':id')
-    remove(@Param('id', ParseIntPipe) id: number) {
-        return this.moduleService.remove(id);
+    async remove(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
+        const userId = req.user?.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: userId ? { userId: userId } : undefined,
+            level: "log",
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
+            httpMethod: req.method,
+            requestBody: { moduleId: id },
+            securityAlert: true,
+            moduleData: {
+                moduleId: id
+            }
+        });
+
+        try {
+            const result = await this.moduleService.remove(id);
+            log.Update('httpResponse', 200).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 }

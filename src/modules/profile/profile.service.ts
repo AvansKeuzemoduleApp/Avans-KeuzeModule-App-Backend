@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudentProfile } from './student-profile.entity';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
+import { LoggingHandler } from '../logger/LoggingHandler';
 
 @Injectable()
 export class ProfileService {
@@ -41,7 +42,15 @@ export class ProfileService {
                 userId
             });
             await this.studentProfileRepo.save(profile);
-            this.logger.log(`Created student profile for user ${userId}`);
+            new LoggingHandler(this.logger, {
+                level: 'log',
+                codeLocation: 'ensureStudentProfileExists',
+                message: `Created student profile for user`,
+                userData: {
+                    userId: userId
+                },
+                securityAlert: true
+            }).Send();
 
             return profile;
         } catch (error: any) {
@@ -92,7 +101,15 @@ export class ProfileService {
             profile.interests = dto.interests || null;
         }
 
-        this.logger.log(`Updated student profile for user ${userId}`);
+        new LoggingHandler(this.logger, {
+            level: 'log',
+            codeLocation: 'updateStudentProfile',
+            message: `Updated student profile for user`,
+            userData: {
+                userId: userId
+            },
+            securityAlert: true
+        }).Send();
         await this.studentProfileRepo.save(profile);
 
         const response = {
