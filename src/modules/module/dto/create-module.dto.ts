@@ -1,4 +1,4 @@
-import { ArrayMaxSize, IsArray, IsDateString, IsInt, IsString, Length, Max, Min } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsDateString, IsInt, IsOptional, IsString, Length, Max, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { IsNotPastDate } from './validators/is-not-past-date.validator';
 import { IsNotHtml } from './validators/is-not-html.validator';
@@ -34,9 +34,10 @@ export class CreateModuleDto {
     @IsNotHtml()
     location!: string;
 
+    @IsOptional()
     @IsInt()
     @Min(1)
-    contact_id!: number;
+    contact_id?: number;
 
     @IsString()
     @Transform(({ value }) => sanitizeText(value))
@@ -56,10 +57,11 @@ export class CreateModuleDto {
     @IsNotHtml({ each: true })
     module_tags!: string[];
 
+    @IsOptional()
     @IsInt()
     @Min(0)
     @Max(10)
-    estimated_difficulty!: number;
+    estimated_difficulty?: number;
 
     @IsInt()
     @Min(0)

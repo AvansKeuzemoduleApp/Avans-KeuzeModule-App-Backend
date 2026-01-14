@@ -200,7 +200,9 @@ export class AuthController {
 
     @Get('me')
     me(@Req() req: RequestWithCookies) {
-        const userId = req.user?.sub ? String(req.user.sub) : undefined;
+        const user = req.user;
+        const userId = user?.sub ? String(user.sub) : '';
+        const roles = userId ? await this.authService.getRoleNamesForUser(userId) : [];
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
             level: "log",
@@ -210,6 +212,13 @@ export class AuthController {
             httpMethod: req.method
         });
         log.Send();
-        return { user: req.user };
+        return {
+            user: user
+                ? {
+                    ...user,
+                    roles,
+                }
+                : null,
+        };
     }
 }

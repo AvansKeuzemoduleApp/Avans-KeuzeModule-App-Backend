@@ -268,4 +268,15 @@ export class AuthService {
 
         return { accessToken, refreshToken: newRefreshToken };
     }
+
+    async getRoleNamesForUser(userId: string): Promise<string[]> {
+        const id = String(userId ?? '').trim();
+        if (!id) return [];
+
+        const userRolesRepo = this.dataSource.getRepository(UserRole);
+        const rows = await userRolesRepo.find({ where: { userId: id }, relations: ['role'] });
+        return rows
+            .map((r) => String(r.role?.name ?? '').trim().toLowerCase())
+            .filter(Boolean);
+    }
 }
