@@ -19,6 +19,7 @@ describe('AuthController (Integration)', () => {
         login: jest.fn(),
         logout: jest.fn(),
         refresh: jest.fn(),
+        getRoleNamesForUser: jest.fn(),
     };
 
     const mockJwtService = {
@@ -53,6 +54,17 @@ describe('AuthController (Integration)', () => {
         }).compile();
 
         app = module.createNestApplication();
+        // Inject a test user for endpoints that read req.user.
+        // Use header x-test-user: teacher|student to control roles.
+        app.use((req: any, _res: any, next: any) => {
+            const mode = String(req.headers['x-test-user'] ?? '').toLowerCase();
+            if (mode === 'teacher') {
+                req.user = { sub: 'user-1', email: 'teacher@test.local' };
+            } else if (mode === 'student') {
+                req.user = { sub: 'user-2', email: 'student@test.local' };
+            }
+            next();
+        });
         app.use(cookieParser());
         app.useGlobalPipes(
             new ValidationPipe({
@@ -131,4 +143,33 @@ describe('AuthController (Integration)', () => {
             expect(response.body.message).toBe('If registration is possible, the account will be created.');
         });
     })
+
+    describe('GET /auth/me', () => {
+        it('should return null when unauthenticated', async () => {
+            const response = await request(app.getHttpServer())
+                .get('/auth/me')
+                .expect(200);
+
+            expect(response.body).toEqual({ user: null });
+            expect(mockAuthService.getRoleNamesForUser).not.toHaveBeenCalled();
+        });
+
+        it('should include roles for authenticated user', async () => {
+            mockAuthService.getRoleNamesForUser.mockResolvedValueOnce(['teacher']);
+
+            const response = await request(app.getHttpServer())
+                .get('/auth/me')
+                .set('x-test-user', 'teacher')
+                .expect(200);
+
+            expect(mockAuthService.getRoleNamesForUser).toHaveBeenCalledWith('user-1');
+            expect(response.body.user).toEqual(
+                expect.objectContaining({
+                    sub: 'user-1',
+                    email: 'teacher@test.local',
+                    roles: ['teacher'],
+                }),
+            );
+        });
+    });
 });

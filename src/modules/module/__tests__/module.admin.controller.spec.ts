@@ -128,7 +128,6 @@ describe('ModuleAdminController', () => {
                 description: 'Description',
                 studycredit: 15,
                 location: 'Breda',
-                contact_id: 999,
                 level: 'Bachelor',
                 learningoutcomes: 'Outcomes',
                 module_tags: ['tag1'],
@@ -137,10 +136,10 @@ describe('ModuleAdminController', () => {
                 start_date: '2026-09-01',
             };
 
-            const error = new Error('Invalid contact_id');
+            const error = new Error('Create failed');
             mockModuleService.create.mockRejectedValue(error);
 
-            await expect(controller.create(dto)).rejects.toThrow('Invalid contact_id');
+            await expect(controller.create(dto)).rejects.toThrow('Create failed');
             expect(mockModuleService.create).toHaveBeenCalledWith(dto);
         });
     });
