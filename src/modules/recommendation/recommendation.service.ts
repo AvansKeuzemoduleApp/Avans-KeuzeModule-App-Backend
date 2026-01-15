@@ -93,13 +93,13 @@ export class RecommendationService {
         }
 
         // Call FastAPI to get recommendations
-        log.update("message", "calling the fastAPI").sendPartial()
+        log.update("message", "calling FastAPI").sendPartial()
         const response = await this.fastApiClient.getRecommendations(
             interests,
             merits,
             goals,
         );
-        log.update("message", "got a response from fastAPI").sendPartial()
+        log.update("message", "got a response from FastAPI").sendPartial()
 
         // Extract module IDs from the response
         const recommendedModuleIds = Array.isArray(response.modules)
