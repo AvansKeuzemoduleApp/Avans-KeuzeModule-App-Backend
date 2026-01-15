@@ -26,4 +26,7 @@ export class RecommendationOrder {
 
     @Column({ name: 'recommendation_order', type: 'int' })
     recommendationOrder!: number;
+
+    @Column({ name: 'matching_keywords', type: 'text', nullable: true })
+    matchingKeywords?: string;
 }

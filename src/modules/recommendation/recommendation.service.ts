@@ -118,9 +118,13 @@ export class RecommendationService {
                 id: In(recommendedModuleIds),
             },
         });
-
         // Create a map for quick lookup
         const moduleMap = new Map(modules.map((m) => [m.id, m]));
+
+        // Create a map for matching keywords
+        const keywordsMap = new Map(
+            response.modules.map((m) => [m.id, m.matching_keywords])
+        );
 
         // Filter to only existing modules in the correct order
         const validModuleIds = recommendedModuleIds.filter((id) => moduleMap.has(id));
@@ -145,6 +149,7 @@ export class RecommendationService {
                 recommendationCacheId: cache.id,
                 moduleInformationId: moduleId,
                 recommendationOrder: index + 1,
+                matchingKeywords: (keywordsMap.get(moduleId) || []).join(';'),
             }),
         );
 
@@ -213,7 +218,8 @@ export class RecommendationService {
             available_spots: order.moduleInformation.availableSpots,
             start_date: order.moduleInformation.startDate,
             isFavourite: favouriteModuleIds.has(order.moduleInformation.id),
-            explanation: "Not implemented yet."
+            explanation: "Not implemented yet.",
+            matching_keywords: order.matchingKeywords ? order.matchingKeywords.split(';') : [],
         }));
 
         // Apply filters
