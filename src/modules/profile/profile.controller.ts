@@ -28,10 +28,10 @@ export class ProfileController {
 
         try {
             const result = await this.profileService.getOrCreateStudentProfile(userId);
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return result;
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -62,10 +62,10 @@ export class ProfileController {
 
         try {
             const result = await this.profileService.updateStudentProfile(userId, dto);
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return result;
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }

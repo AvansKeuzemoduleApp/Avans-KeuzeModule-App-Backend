@@ -20,7 +20,7 @@ export class AppController {
             httpResponse: 200,
             httpMethod: req.method,
         });
-        log.Send();
+        log.send();
         return { status: 'ok' };
     }
 }

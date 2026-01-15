@@ -36,7 +36,7 @@ export class LoggerController {
         });
 
         if (!existsSync(logPath)) {
-            log.Update("message", `Log file not found: ${logPath}`).Update("httpResponse", 404).Send()
+            log.update("message", `Log file not found: ${logPath}`).update("httpResponse", 404).send()
             throw new NotFoundException('Log file not found');
         }
 
@@ -46,7 +46,7 @@ export class LoggerController {
             try {
                 filter = JSON.parse(filterJson);
             } catch (e) {
-                log.Update("message", `Invalid filter JSON`).Update("httpResponse", 400).Send()
+                log.update("message", `Invalid filter JSON`).update("httpResponse", 400).send()
                 throw new BadRequestException('Invalid filter JSON');
             }
         }
@@ -103,7 +103,7 @@ export class LoggerController {
                 callback(null, hasOutputStartBracket ? ']' : '[]');
             },
         });
-        log.Send();
+        log.send();
         return new StreamableFile(file.pipe(transform), {
             type: 'application/json',
             disposition: 'inline; filename="combined.log"',
@@ -124,7 +124,7 @@ export class LoggerController {
         });
 
         if (!existsSync(logPath)) {
-            log.Update("message", `Log file not found: ${logPath}`).Update("httpResponse", 404).Send();
+            log.update("message", `Log file not found: ${logPath}`).update("httpResponse", 404).send();
             throw new NotFoundException('Log file not found');
         }
 
@@ -141,10 +141,10 @@ export class LoggerController {
 
             truncateSync(logPath, 0);
 
-            log.Update("message", `Logs archived successfully to ${archiveFilename}`)
-                .Update("httpResponse", 200)
-                .UpdateDebug("archiveFile", archiveFilename)
-                .Send();
+            log.update("message", `Logs archived successfully to ${archiveFilename}`)
+                .update("httpResponse", 200)
+                .updateDebug("archiveFile", archiveFilename)
+                .send();
 
             return {
                 message: 'Logs archived successfully',
@@ -152,16 +152,16 @@ export class LoggerController {
             };
         } catch (error) {
             if (error.code === 'EEXIST') {
-                log.Update("message", `Archive file already exists for this timestamp, timestamps are captured per second.`)
-                    .Update("httpResponse", 409)
-                    .Send();
+                log.update("message", `Archive file already exists for this timestamp, timestamps are captured per second.`)
+                    .update("httpResponse", 409)
+                    .send();
                 throw new BadRequestException('Archive file for this timestamp already exists, please don\'t spam this.');
             }
 
-            log.Update("message", `Failed to archive logs`)
-                .Update("httpResponse", 500)
-                .Update("errorMessage", error)
-                .Send();
+            log.update("message", `Failed to archive logs`)
+                .update("httpResponse", 500)
+                .update("errorMessage", error)
+                .send();
             throw new InternalServerErrorException('Failed to archive logs');
         }
     }
