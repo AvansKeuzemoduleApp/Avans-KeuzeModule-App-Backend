@@ -1,13 +1,17 @@
 import { Logger } from "@nestjs/common";
 import { LoggerDebugData, LoggerDebugDataMapped, LoggerModuleData, LoggerModuleDataMapped, LoggerModuleFilterMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
+import { randomUUID } from 'crypto';
 
 export class LoggingHandler {
     logger: Logger;
     data: LoggerObject;
+    logId: string;
     constructor(logger: Logger, data: LoggerObject) {
         this.logger = logger;
         this.data = data;
         this.data.timestamp = new Date();
+        this.logId = randomUUID();
+        this.sendLog(true);
     }
 
     public Get(): LoggerObject {
@@ -127,7 +131,17 @@ export class LoggingHandler {
     }
 
     public Send() {
+        this.sendLog(false)
+    }
+
+    private sendLog(earlyHints: boolean) {
         const converted = this.Mapper()
+        converted.logId = this.logId;
+        if (earlyHints) {
+            converted.logStatus = "init";
+        } else {
+            converted.logStatus = "closed";
+        }
         switch (this.data.level) {
             case 'warn':
                 this.logger.warn(converted);

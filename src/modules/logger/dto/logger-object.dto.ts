@@ -32,6 +32,8 @@ export interface LoggerObjectMapped {
     moduleData: LoggerModuleDataMapped | null;
     message: string | null;
     debugObject: LoggerDebugDataMapped | null;
+    logStatus?: "init" | "closed";
+    logId?: string
 }
 
 export interface LoggerUserData {
