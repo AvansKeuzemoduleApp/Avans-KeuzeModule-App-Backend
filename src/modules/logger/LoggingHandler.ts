@@ -138,11 +138,11 @@ export class LoggingHandler {
     }
 
     public send() {
-        this.sendLog("closed")
+        this.sendLog("closed");
     }
 
     private sendLog(logStatus: "init" | "closed" | "midway-replacement") {
-        const converted = this.mapper(logStatus)
+        const converted = this.mapper(logStatus);
         switch (this.data.level) {
             case 'warn':
                 this.logger.warn(converted);
