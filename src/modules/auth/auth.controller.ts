@@ -44,10 +44,10 @@ export class AuthController {
 
         try {
             await this.authService.register(dto);
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return { message: 'If registration is possible, the account will be created.' };
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -97,7 +97,7 @@ export class AuthController {
                 path: '/api/auth',
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
-            log.Update('httpResponse', 200).Update('securityAlert', true).Send();
+            log.update('httpResponse', 200).update('securityAlert', true).send();
             return { message: 'Login Successful' };
         } catch (e) {
             this.loginProtection.recordFailure(key);
@@ -107,7 +107,7 @@ export class AuthController {
             if (backoffMs > 0) {
                 res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
             }
-            log.Update('httpResponse', 401).Update('level', 'warn').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 401).update('level', 'warn').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -140,10 +140,10 @@ export class AuthController {
             res.clearCookie(accessName, { path: '/', secure, sameSite });
             res.clearCookie(refreshName, { path: '/api/auth', secure, sameSite });
 
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return { message: 'Logged out' };
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -190,10 +190,10 @@ export class AuthController {
                 maxAge: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_SECONDS ?? 604800) * 1000,
             });
 
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return { message: 'Refresh' };
         } catch (e) {
-            log.Update('httpResponse', 401).Update('level', 'warn').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 401).update('level', 'warn').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -211,7 +211,7 @@ export class AuthController {
             httpResponse: 200,
             httpMethod: req.method
         });
-        log.Send();
+        log.send();
         return {
             user: user
                 ? {

@@ -1,0 +1,30 @@
+meta {
+  name: Get Recommendations by Student ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{ai_url}}/recommendations/{{student_id}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  student_id: 939374e4-3ff4-4fbe-98b8-e69b8d0d3b7f
+}
+
+tests {
+  test("Response should be an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+  
+  test("Each recommendation should have required fields", function() {
+    res.body.forEach(function(rec) {
+      expect(rec).to.have.property("name");
+      expect(rec).to.have.property("description");
+      expect(rec).to.have.property("total_score");
+      expect(rec).to.have.property("matching_keywords");
+    });
+  });
+}

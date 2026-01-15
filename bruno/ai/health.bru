@@ -1,0 +1,17 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{ai_url}}/health/
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status should be ok", function() {
+    expect(res.body.status).to.equal("ok");
+  });
+}

@@ -36,7 +36,7 @@ export class StudentFavouriteService {
             where: { studentId, moduleId },
         });
         if (existingFavourite) {
-            log.Update("message", "already existed in DB").Send();
+            log.update("message", "already existed in DB").send();
             return existingFavourite;
         }
 
@@ -47,11 +47,11 @@ export class StudentFavouriteService {
         });
 
         try {
-            log.Update("message", "updating DB").Send();
+            log.update("message", "updating DB").send();
             return await this.studentFavouriteRepo.save(favourite);
         } catch (error: any) {
             // Handle race condition: if duplicate key error occurs, fetch and return existing record
-            log.Update("errorMessage", error).Update("level", "error").Send();
+            log.update("errorMessage", error).update("level", "error").send();
             if (error.code === 'ER_DUP_ENTRY' || error.message?.includes('Duplicate entry')) {
                 const existing = await this.studentFavouriteRepo.findOne({
                     where: { studentId, moduleId },
@@ -80,11 +80,11 @@ export class StudentFavouriteService {
         });
 
         if (!favourite) {
-            log.Update("message", "never existed in DB").Send();
+            log.update("message", "never existed in DB").send();
             return;
         }
 
-        log.Update("message", "updating DB").Send();
+        log.update("message", "updating DB").send();
         await this.studentFavouriteRepo.remove(favourite);
     }
 }

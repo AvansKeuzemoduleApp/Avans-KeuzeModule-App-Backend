@@ -1,59 +1,67 @@
 import { Logger } from "@nestjs/common";
 import { LoggerDebugData, LoggerDebugDataMapped, LoggerModuleData, LoggerModuleDataMapped, LoggerModuleFilterMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
+import { randomUUID } from 'crypto';
 
 export class LoggingHandler {
     logger: Logger;
     data: LoggerObject;
+    initTime: Date;
+    updatedTime: Date;
+    logId: string;
     constructor(logger: Logger, data: LoggerObject) {
         this.logger = logger;
         this.data = data;
-        this.data.timestamp = new Date();
+        this.initTime = new Date();
+        this.updatedTime = new Date();
+        this.logId = randomUUID();
+        this.sendLog("init");
     }
 
-    public Get(): LoggerObject {
+    public get(): LoggerObject {
         return this.data;
     }
 
-    public Set(data: LoggerObject): LoggingHandler {
+    public set(data: LoggerObject): LoggingHandler {
         this.data = data;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
+        this.sendLog("midway-replacement");
         return this;
     }
 
-    public Update<K extends keyof LoggerObject>(key: K, value: LoggerObject[K]): LoggingHandler {
+    public update<K extends keyof LoggerObject>(key: K, value: LoggerObject[K]): LoggingHandler {
         this.data[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
-    public UpdateUser<K extends keyof LoggerUserData>(key: K, value: LoggerUserData[K]): LoggingHandler {
+    public updateUser<K extends keyof LoggerUserData>(key: K, value: LoggerUserData[K]): LoggingHandler {
         if (!this.data.userData) {
             this.data.userData = {};
         }
         this.data.userData[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
-    public UpdateModule<K extends keyof LoggerModuleData>(key: K, value: LoggerModuleData[K]): LoggingHandler {
+    public updateModule<K extends keyof LoggerModuleData>(key: K, value: LoggerModuleData[K]): LoggingHandler {
         if (!this.data.moduleData) {
             this.data.moduleData = {};
         }
         this.data.moduleData[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
-    public UpdateDebug<K extends keyof LoggerDebugData>(key: K, value: LoggerDebugData[K]): LoggingHandler {
+    public updateDebug<K extends keyof LoggerDebugData>(key: K, value: LoggerDebugData[K]): LoggingHandler {
         if (!this.data.debugObject) {
             this.data.debugObject = {};
         }
         this.data.debugObject[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
-    private Mapper(): LoggerObjectMapped {
+    private mapper(logStatus: "init" | "closed" | "midway-replacement"): LoggerObjectMapped {
         let userData: LoggerUserDataMapped | null = null;
         let moduleData: LoggerModuleDataMapped | null = null;
         let debugObject: LoggerDebugDataMapped | null = null;
@@ -108,7 +116,6 @@ export class LoggingHandler {
             }
         }
         return {
-            timestamp: this.data.timestamp,
             userData: userData,
             level: this.data.level,
             codeLocation: this.data.codeLocation,
@@ -122,12 +129,20 @@ export class LoggingHandler {
             securityAlert: this.data.securityAlert ?? false,
             moduleData: moduleData,
             message: this.data.message ?? null,
-            debugObject: debugObject
+            debugObject: debugObject,
+            logStatus: logStatus,
+            logId: this.logId,
+            initTimestamp: this.initTime,
+            lastChangeTimestamp: this.updatedTime
         }
     }
 
-    public Send() {
-        const converted = this.Mapper()
+    public send() {
+        this.sendLog("closed");
+    }
+
+    private sendLog(logStatus: "init" | "closed" | "midway-replacement") {
+        const converted = this.mapper(logStatus);
         switch (this.data.level) {
             case 'warn':
                 this.logger.warn(converted);

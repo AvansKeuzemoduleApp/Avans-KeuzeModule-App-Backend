@@ -29,8 +29,15 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Create sysadmin user (UID 1000 matches VPS)
+RUN addgroup -g 1000 sysadmin && adduser -D -u 1000 -G sysadmin sysadmin && \
+    chown -R sysadmin:sysadmin /app
+
 # Expose the port the app runs on
 EXPOSE 3000
+
+# Run as sysadmin user
+USER sysadmin
 
 # Start the application
 CMD ["npm", "run", "start:prod"]
