@@ -1,5 +1,4 @@
 export interface LoggerObject {
-    timestamp?: Date;
     userData?: LoggerUserData;
     level: "log" | "fatal" | "error" | "warn" | "debug" | "verbose",
     codeLocation: string;
@@ -17,7 +16,8 @@ export interface LoggerObject {
 }
 
 export interface LoggerObjectMapped {
-    timestamp?: Date;
+    initTimestamp: Date;
+    lastChangeTimestamp: Date;
     userData: LoggerUserDataMapped | null;
     level: "log" | "fatal" | "error" | "warn" | "debug" | "verbose",
     codeLocation: string;

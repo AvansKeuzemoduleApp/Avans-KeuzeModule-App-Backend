@@ -5,11 +5,14 @@ import { randomUUID } from 'crypto';
 export class LoggingHandler {
     logger: Logger;
     data: LoggerObject;
+    initTime: Date;
+    updatedTime: Date;
     logId: string;
     constructor(logger: Logger, data: LoggerObject) {
         this.logger = logger;
         this.data = data;
-        this.data.timestamp = new Date();
+        this.initTime = new Date();
+        this.updatedTime = new Date();
         this.logId = randomUUID();
         this.sendLog("init");
     }
@@ -20,14 +23,14 @@ export class LoggingHandler {
 
     public set(data: LoggerObject): LoggingHandler {
         this.data = data;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         this.sendLog("midway-replacement");
         return this;
     }
 
     public update<K extends keyof LoggerObject>(key: K, value: LoggerObject[K]): LoggingHandler {
         this.data[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
@@ -36,7 +39,7 @@ export class LoggingHandler {
             this.data.userData = {};
         }
         this.data.userData[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
@@ -45,7 +48,7 @@ export class LoggingHandler {
             this.data.moduleData = {};
         }
         this.data.moduleData[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
@@ -54,7 +57,7 @@ export class LoggingHandler {
             this.data.debugObject = {};
         }
         this.data.debugObject[key] = value;
-        this.data.timestamp = new Date();
+        this.updatedTime = new Date();
         return this;
     }
 
@@ -113,7 +116,6 @@ export class LoggingHandler {
             }
         }
         return {
-            timestamp: this.data.timestamp,
             userData: userData,
             level: this.data.level,
             codeLocation: this.data.codeLocation,
@@ -129,7 +131,9 @@ export class LoggingHandler {
             message: this.data.message ?? null,
             debugObject: debugObject,
             logStatus: logStatus,
-            logId: this.logId
+            logId: this.logId,
+            initTimestamp: this.initTime,
+            lastChangeTimestamp: this.updatedTime
         }
     }
 
