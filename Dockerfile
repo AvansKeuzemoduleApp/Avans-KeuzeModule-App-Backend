@@ -29,8 +29,17 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Create sysadmin user (UID 1000 matches VPS)
+RUN addgroup -g 1000 sysadmin && adduser -D -u 1000 -G sysadmin sysadmin && \
+    chown -R sysadmin:sysadmin /app
+
 # Expose the port the app runs on
 EXPOSE 3000
+
+# Create sysadmin user and set permissions
+RUN addgroup -g 1000 sysadmin && adduser -D -u 1000 -G sysadmin sysadmin && \
+    chown -R sysadmin:sysadmin /usr/share/nginx/html /var/cache/nginx /var/log/nginx /var/run && \
+    sed -i 's/user nginx;/user sysadmin;/' /etc/nginx/nginx.conf
 
 # Run as existing sysadmin user
 USER sysadmin
