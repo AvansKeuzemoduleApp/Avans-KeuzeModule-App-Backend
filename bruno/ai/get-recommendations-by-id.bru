@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{url}}recommendations/{{student_id}}
+  url: {{ai_url}}/recommendations/{{student_id}}
   body: none
   auth: none
 }
@@ -18,7 +18,7 @@ tests {
   test("Response should be an array", function() {
     expect(res.body).to.be.an("array");
   });
-
+  
   test("Each recommendation should have required fields", function() {
     res.body.forEach(function(rec) {
       expect(rec).to.have.property("name");
