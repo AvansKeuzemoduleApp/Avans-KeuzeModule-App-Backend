@@ -12,6 +12,7 @@ import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
 import { StudentFavourite } from '../student-favourite/student-favourite.entity';
 import { LoggingHandler } from '../logger/LoggingHandler';
 import { ModuleLogMapper } from '../logger/helpers/module-log-mapper';
+import { FastApiClientService } from './fastapi-client.service';
 
 const PAGE_SIZE = 10;
 
@@ -28,6 +29,7 @@ export class RecommendationService {
         @InjectRepository(StudentFavourite)
         private readonly studentFavouriteRepo: Repository<StudentFavourite>,
         private readonly profileService: ProfileService,
+        private readonly fastApiClient: FastApiClientService,
     ) { }
 
     /**
@@ -90,10 +92,12 @@ export class RecommendationService {
             return this.formatRecommendationResponse(cachedRecommendation, query, userId);
         }
 
-        // TODO: run api request to the FastAPI
-        // this can only be doen once we have the fastAPI
-        // we need to update the db to have the reason of the recommendation.
-        const response = templateResponse;
+        // Call FastAPI to get recommendations
+        const response = await this.fastApiClient.getRecommendations(
+            interests,
+            merits,
+            goals,
+        );
 
         // Fetch modules by IDs, skipping any that don't exist
         const modules = await this.moduleRepo.find({

@@ -62,6 +62,7 @@ export interface LoggerDebugData {
     filterData?: LoggerModuleFilterData;
     filterJson?: string;
     archiveFile?: string;
+    FASTAPI_URL?: string;
 }
 
 export interface LoggerDebugDataMapped {
@@ -70,6 +71,7 @@ export interface LoggerDebugDataMapped {
     filterData: LoggerModuleFilterMapped | null;
     filterJson: string | null;
     archiveFile: string | null;
+    FASTAPI_URL: string | null;
 }
 
 export interface LoggerModuleFilterData {
