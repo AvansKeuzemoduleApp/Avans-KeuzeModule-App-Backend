@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger, } from '@nestjs/common';
+import { LoggingHandler } from '../modules/logger/LoggingHandler';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -24,17 +25,30 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
             // Keep 4xx messages (useful for clients); sanitize 5xx
             if (status >= 500) {
-
                 // Log 5xx errors server-side
-                this.logger.error(
-                    `HttpException ${status} on ${req?.method} ${req?.url}`,
-                    (exception as any)?.stack ?? String(exception),
-                );
+                new LoggingHandler(this.logger, {
+                    level: 'error',
+                    codeLocation: req.path,
+                    originalUrl: req.originalUrl,
+                    httpResponse: status,
+                    httpMethod: `${req?.method}`,
+                    errorMessage: (exception as any)?.stack ?? String(exception)
+                }).Send()
 
                 body = { ...body, message: 'Internal server error' };
 
             } else {
                 const msg = response?.message ?? response;
+                new LoggingHandler(this.logger, {
+                    level: 'log',
+                    codeLocation: req.path,
+                    originalUrl: req.originalUrl,
+                    httpResponse: status,
+                    httpMethod: `${req?.method}`,
+                    errorMessage: (exception as any)?.stack ?? String(exception),
+                    programmerNote: `It's a user mistake.`,
+                    responseMessage: msg
+                }).Send()
                 body = {
                     statusCode: status,
                     message: msg,
@@ -45,10 +59,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
             }
         } else {
             // Log full error server-side, return generic message to client
-            this.logger.error(
-                `Unhandled exception on ${req?.method} ${req?.url}`,
-                (exception as any)?.stack ?? String(exception),
-            );
+            new LoggingHandler(this.logger, {
+                level: 'error',
+                codeLocation: req.path,
+                originalUrl: req.originalUrl,
+                httpResponse: status,
+                httpMethod: `${req?.method}`,
+                errorMessage: (exception as any)?.stack ?? String(exception)
+            }).Send()
         }
 
         res.status(status).json(body);

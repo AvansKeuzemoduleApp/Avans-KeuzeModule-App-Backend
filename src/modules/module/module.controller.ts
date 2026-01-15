@@ -1,6 +1,7 @@
 import {
     Controller,
     Get,
+    Logger,
     Param,
     ParseIntPipe,
     Query,
@@ -9,18 +10,35 @@ import {
 import { ModuleService } from './module.service';
 import { Public } from '../auth/guards/public.decorator';
 import { QueryModuleDto } from './dto/query-module.dto';
+import { LoggingHandler } from '../logger/LoggingHandler';
 
-type RequestWithUser = Request & { user?: { sub: string } };
+type RequestWithUser = Request & { user?: { sub: string }; method: string; originalUrl: string; path: string };
 
 @Controller('modules')
 export class ModuleController {
+    private readonly logger = new Logger(ModuleController.name);
+
     constructor(private readonly moduleService: ModuleService) { }
 
     @Get()
     async findAll(@Req() req: RequestWithUser, @Query() query: QueryModuleDto) {
         const userId = req.user!.sub;
+        const log = new LoggingHandler(this.logger, {
+            userData: { userId: userId },
+            level: "log",
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
+            httpMethod: req.method,
+        });
 
-        return this.moduleService.findAll(query, userId);
+        try {
+            const result = await this.moduleService.findAll(query, userId);
+            log.Update('httpResponse', 200).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 
     @Public()
@@ -30,6 +48,21 @@ export class ModuleController {
         @Req() req: RequestWithUser,
     ) {
         const userId = req.user?.sub;
-        return this.moduleService.findOne(id, userId);
+        const log = new LoggingHandler(this.logger, {
+            userData: userId ? { userId: userId } : undefined,
+            level: "log",
+            codeLocation: req.path,
+            originalUrl: req.originalUrl,
+            httpMethod: req.method,
+        });
+
+        try {
+            const result = await this.moduleService.findOne(id, userId);
+            log.Update('httpResponse', 200).Send();
+            return result;
+        } catch (e) {
+            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            throw e;
+        }
     }
 }

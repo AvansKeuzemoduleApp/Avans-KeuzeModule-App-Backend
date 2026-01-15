@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BadRequestException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
@@ -11,11 +11,14 @@ import { ModuleDetailDto } from './dto/moduledetail-response.dto';
 import { ModuleMapper } from './mappers/toModuleDetailDtoMapper';
 import { defaultSortableModuleFilters } from './data/module-filters';
 import { sanitizeTags, sanitizeText } from '../../sanitization/sanitize-text';
+import { LoggingHandler } from '../logger/LoggingHandler';
+import { ModuleLogMapper } from '../logger/helpers/module-log-mapper';
 
 const PAGE_SIZE = 10;
 
 @Injectable()
 export class ModuleService {
+    private readonly logger = new Logger(ModuleService.name);
     private contactReference:
         | { tableName: string; columnName: string }
         | null
@@ -25,13 +28,22 @@ export class ModuleService {
         value: string | null | undefined,
         fieldName: string,
     ): void {
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'validateNonEmptyString'
+        })
         if (typeof value !== 'string' || value.trim().length === 0) {
+            log.UpdateDebug("value", value ?? undefined)
+                .UpdateDebug("fieldName", fieldName).Update("message", `Field "${fieldName}" must be a non-empty string.`).Send();
             throw new BadRequestException(`Field "${fieldName}" must be a non-empty string.`);
         }
+        // else {
+        //     log.Send();
+        // }
     }
 
     private sanitizeCreateDto(dto: CreateModuleDto): CreateModuleDto {
-        return {
+        const newDto = {
             ...dto,
             name: sanitizeText(dto.name),
             shortdescription: sanitizeText(dto.shortdescription),
@@ -41,6 +53,12 @@ export class ModuleService {
             learningoutcomes: sanitizeText(dto.learningoutcomes),
             module_tags: sanitizeTags(dto.module_tags ?? []),
         };
+        new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'sanitizeCreateDto',
+            moduleData: newDto
+        }).Send();
+        return newDto;
     }
 
     private sanitizeUpdateDto(dto: UpdateModuleDto): UpdateModuleDto {
@@ -70,6 +88,11 @@ export class ModuleService {
         if (out.module_tags !== undefined) {
             out.module_tags = sanitizeTags(out.module_tags ?? []);
         }
+        new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'sanitizeUpdateDto',
+            moduleData: out
+        }).Send();
 
         return out;
     }
@@ -84,98 +107,6 @@ export class ModuleService {
         return /^[a-zA-Z0-9_]+$/.test(value);
     }
 
-    private async resolveContactReference(): Promise<
-        { tableName: string; columnName: string } | null
-    > {
-        if (this.contactReference !== undefined) return this.contactReference;
-
-        const rows: Array<{ tableName: string; columnName: string }> =
-            await this.dataSource.query(
-                `
-        SELECT
-          REFERENCED_TABLE_NAME AS tableName,
-          REFERENCED_COLUMN_NAME AS columnName
-        FROM information_schema.KEY_COLUMN_USAGE
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = 'module_information'
-          AND COLUMN_NAME = 'contact_id'
-          AND REFERENCED_TABLE_NAME IS NOT NULL
-        LIMIT 1
-      `,
-            );
-
-        const ref = rows?.[0];
-        if (!ref?.tableName || !ref?.columnName) {
-            const candidates = ['contacts', 'contact_information', 'module_contacts'];
-
-            for (const tableName of candidates) {
-                const exists: Array<{ tableName: string }> = await this.dataSource.query(
-                    `
-            SELECT TABLE_NAME AS tableName
-            FROM information_schema.TABLES
-            WHERE TABLE_SCHEMA = DATABASE()
-              AND TABLE_NAME = ?
-            LIMIT 1
-          `,
-                    [tableName],
-                );
-
-                if (!exists?.[0]?.tableName) continue;
-
-                // Prefer id column if present.
-                const cols: Array<{ columnName: string }> = await this.dataSource.query(
-                    `
-            SELECT COLUMN_NAME AS columnName
-            FROM information_schema.COLUMNS
-            WHERE TABLE_SCHEMA = DATABASE()
-              AND TABLE_NAME = ?
-              AND COLUMN_NAME IN ('id', 'contact_id')
-            ORDER BY FIELD(COLUMN_NAME, 'id', 'contact_id')
-            LIMIT 1
-          `,
-                    [tableName],
-                );
-
-                const columnName = cols?.[0]?.columnName;
-                if (!columnName) continue;
-
-                if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) continue;
-
-                this.contactReference = { tableName, columnName };
-                return this.contactReference;
-            }
-
-            this.contactReference = null;
-            return null;
-        }
-
-        const tableName = String(ref.tableName);
-        const columnName = String(ref.columnName);
-        if (!this.isSafeIdentifier(tableName) || !this.isSafeIdentifier(columnName)) {
-            this.contactReference = null;
-            return null;
-        }
-
-        this.contactReference = { tableName, columnName };
-        return this.contactReference;
-    }
-
-    private async ensureContactExists(contactId: number): Promise<void> {
-        const ref = await this.resolveContactReference();
-        if (!ref) {
-            throw new BadRequestException('Invalid contact_id (contact reference not configured)');
-        }
-
-        const rows: Array<{ one: number }> = await this.dataSource.query(
-            `SELECT 1 AS one FROM \`${ref.tableName}\` WHERE \`${ref.columnName}\` = ? LIMIT 1`,
-            [contactId],
-        );
-
-        if (!rows || rows.length === 0) {
-            throw new BadRequestException('Invalid contact_id');
-        }
-    }
-
     async create(dto: CreateModuleDto): Promise<Module> {
         dto = this.sanitizeCreateDto(dto);
 
@@ -186,7 +117,8 @@ export class ModuleService {
         this.validateNonEmptyString(dto.level, 'level');
         this.validateNonEmptyString(dto.learningoutcomes, 'learningoutcomes');
 
-        await this.ensureContactExists(dto.contact_id);
+        const contactId = dto.contact_id ?? 1;
+        const estimatedDifficulty = dto.estimated_difficulty ?? 0;
 
         const entity = this.moduleRepo.create({
             name: dto.name,
@@ -194,22 +126,36 @@ export class ModuleService {
             description: dto.description,
             studyCredit: dto.studycredit,
             location: dto.location,
-            contactId: dto.contact_id,
+            contactId,
             level: dto.level,
             learningOutcomes: dto.learningoutcomes,
             moduleTags: dto.module_tags,
             popularityScore: 0,
-            estimatedDifficulty: dto.estimated_difficulty,
+            estimatedDifficulty,
             availableSpots: dto.available_spots,
             startDate: dto.start_date,
         });
+
+        new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'create',
+            moduleData: entity
+        }).Send();
 
         return this.moduleRepo.save(entity);
     }
 
     async update(id: number, dto: UpdateModuleDto): Promise<Module> {
         const entity = await this.moduleRepo.findOne({ where: { id } });
-        if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'update',
+            moduleData: ModuleLogMapper.CreateUpdateModule(dto, id)
+        });
+        if (!entity) {
+            log.Update("message", `Module with ID not found`).Send();
+            throw new NotFoundException(`Module with ID ${id} not found`)
+        };
 
         dto = this.sanitizeUpdateDto(dto);
 
@@ -223,10 +169,6 @@ export class ModuleService {
         if (dto.level !== undefined) this.validateNonEmptyString(dto.level, 'level');
         if (dto.learningoutcomes !== undefined)
             this.validateNonEmptyString(dto.learningoutcomes, 'learningoutcomes');
-
-        if (dto.contact_id !== undefined) {
-            await this.ensureContactExists(dto.contact_id);
-        }
 
         const updates: Partial<Module> = {};
 
@@ -258,13 +200,25 @@ export class ModuleService {
         }
 
         Object.assign(entity, updates);
+        log.Update("message", "Module Updated").Send();
 
         return this.moduleRepo.save(entity);
     }
 
     async remove(id: number): Promise<void> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'remove',
+            moduleData: {
+                moduleId: id
+            }
+        });
         const entity = await this.moduleRepo.findOne({ where: { id } });
-        if (!entity) throw new NotFoundException(`Module with ID ${id} not found`);
+        if (!entity) {
+            log.Update("message", `Module with ID not found`).Send()
+            throw new NotFoundException(`Module with ID ${id} not found`);
+        }
+        log.Send();
 
         await this.moduleRepo.remove(entity);
     }
@@ -273,6 +227,16 @@ export class ModuleService {
         query: QueryModuleDto,
         user: string | undefined,
     ): Promise<ModuleQueryResponseDto<ModuleResponseItemDto>> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'findAll',
+            userData: {
+                userId: user
+            },
+            debugObject: {
+                filterData: ModuleLogMapper.QueryModule(query)
+            }
+        });
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
             .select('module');
@@ -379,6 +343,7 @@ export class ModuleService {
                 showFavourites: false,
             },
         };
+        log.Update("message", "returned modules successfully").Send();
         return responseObject;
     }
 
@@ -386,6 +351,16 @@ export class ModuleService {
         id: number,
         user: string | undefined,
     ): Promise<ModuleDetailDto> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'findOne',
+            moduleData: {
+                moduleId: id
+            },
+            userData: {
+                userId: user
+            }
+        });
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
             .select('module');
@@ -412,8 +387,10 @@ export class ModuleService {
             .getRawOne();
 
         if (!result) {
+            log.Update("message", `Module with ID not found`).Send()
             throw new NotFoundException(`Module with ID ${id} not found`);
         }
+        log.Send();
 
         return ModuleMapper.toDetailDto(result);
     }

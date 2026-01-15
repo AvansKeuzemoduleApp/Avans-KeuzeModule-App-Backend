@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -21,7 +21,13 @@ describe('Auth E2E Tests', () => {
     // Cache test users to avoid redundant registrations
     const testUsers: { [key: string]: { email: string; password: string } } = {};
 
+    // Mock all logger methods globally before any test setup
     beforeAll(async () => {
+        jest.spyOn(Logger.prototype, 'log').mockImplementation();
+        jest.spyOn(Logger.prototype, 'error').mockImplementation();
+        jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+        jest.spyOn(Logger.prototype, 'debug').mockImplementation();
+
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [
                 ConfigModule.forRoot({
@@ -38,8 +44,6 @@ describe('Auth E2E Tests', () => {
                         password: config.get('DB_PASSWORD') || '',
                         database: config.get('DB_NAME') || 'keuzekompas_test',
                         autoLoadEntities: true,
-                        synchronize: true,
-                        dropSchema: true,
                         logging: false,
                     }),
                 }),

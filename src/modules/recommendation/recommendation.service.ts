@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Or, IsNull, MoreThan } from 'typeorm';
 import { Module } from '../module/module.entity';
@@ -10,11 +10,14 @@ import { templateResponse } from './dto/template-fastapi-response';
 import { defaultModuleFilters } from '../module/data/module-filters';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
 import { StudentFavourite } from '../student-favourite/student-favourite.entity';
+import { LoggingHandler } from '../logger/LoggingHandler';
+import { ModuleLogMapper } from '../logger/helpers/module-log-mapper';
 
 const PAGE_SIZE = 10;
 
 @Injectable()
 export class RecommendationService {
+    private readonly logger = new Logger(RecommendationService.name);
     constructor(
         @InjectRepository(RecommendationCache)
         private readonly recommendationCacheRepo: Repository<RecommendationCache>,
@@ -34,6 +37,16 @@ export class RecommendationService {
      * otherwise returns template data.
      */
     async getRecommendationsForUser(query: QueryRecommendationsDto, userId: string): Promise<RecommendationResponseDto<RecommendedResponseItemDto>> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'getRecommendationsForUser',
+            userData: {
+                userId: userId
+            },
+            debugObject: {
+                filterData: ModuleLogMapper.QueryModule(query)
+            }
+        });
         // Get student profile
         const profile = await this.profileService.ensureStudentProfileExists(userId);
 
@@ -54,6 +67,7 @@ export class RecommendationService {
         }
 
         if (missingFields.length > 0) {
+            log.Update("message", `Profile incomplete. Please set the following fields before requesting recommendations: ${missingFields.join(', ')}.`).Send();
             throw new BadRequestException(
                 `Profile incomplete. Please set the following fields before requesting recommendations: ${missingFields.join(', ')}.`,
             );
@@ -120,7 +134,8 @@ export class RecommendationService {
         try {
             await this.recommendationOrderRepo.save(orders);
         } catch (error) {
-            console.error('Error saving recommendation orders:', error);
+            log.Update("message", `Failed to save recommendations`)
+                .Update("errorMessage", error).Update("level", "error").Send();
             throw new BadRequestException('Failed to save recommendations');
         }
 
@@ -131,10 +146,12 @@ export class RecommendationService {
         });
 
         if (!savedCache) {
+            log.Update("message", `Failed to create recommendation cache`).Send();
             throw new BadRequestException('Failed to create recommendation cache');
         }
+        log.Update("message", "returned modules successfully").Send();
 
-        return this.formatRecommendationResponse(savedCache, query, userId);
+        return await this.formatRecommendationResponse(savedCache, query, userId);
     }
 
     private async formatRecommendationResponse(
@@ -142,6 +159,16 @@ export class RecommendationService {
         query: QueryRecommendationsDto,
         userId: string,
     ): Promise<RecommendationResponseDto<RecommendedResponseItemDto>> {
+        const log = new LoggingHandler(this.logger, {
+            level: 'debug',
+            codeLocation: 'formatRecommendationResponse',
+            userData: {
+                userId: userId
+            },
+            debugObject: {
+                filterData: ModuleLogMapper.QueryModule(query)
+            }
+        });
         const sortedOrders = cache.recommendationOrders.sort(
             (a, b) => a.recommendationOrder - b.recommendationOrder,
         );
@@ -228,6 +255,9 @@ export class RecommendationService {
                 showFavourites: true,
             },
         };
+
+        log.Update("message", "returned modules successfully").Send();
+
         return responseObject;
     }
 }

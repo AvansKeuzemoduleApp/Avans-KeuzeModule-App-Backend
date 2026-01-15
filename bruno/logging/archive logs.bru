@@ -1,0 +1,15 @@
+meta {
+  name: archive logs
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/logs/archive
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
