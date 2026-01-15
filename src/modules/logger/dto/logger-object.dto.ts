@@ -32,7 +32,7 @@ export interface LoggerObjectMapped {
     moduleData: LoggerModuleDataMapped | null;
     message: string | null;
     debugObject: LoggerDebugDataMapped | null;
-    logStatus: "init" | "closed" | "midway-replacement";
+    logStatus: "init" | "closed" | "midway-replacement" | "partial";
     logId: string;
 }
 
@@ -62,6 +62,8 @@ export interface LoggerDebugData {
     filterData?: LoggerModuleFilterData;
     filterJson?: string;
     archiveFile?: string;
+    FASTAPI_URL?: string;
+    PAGE_SIZE?: number;
 }
 
 export interface LoggerDebugDataMapped {
@@ -70,6 +72,8 @@ export interface LoggerDebugDataMapped {
     filterData: LoggerModuleFilterMapped | null;
     filterJson: string | null;
     archiveFile: string | null;
+    FASTAPI_URL: string | null;
+    PAGE_SIZE: number | null;
 }
 
 export interface LoggerModuleFilterData {

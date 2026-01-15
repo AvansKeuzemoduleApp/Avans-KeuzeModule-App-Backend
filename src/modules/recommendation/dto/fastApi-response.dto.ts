@@ -1,7 +1,13 @@
 export class FastApiResponseDto {
+    modules!: FastApiResponseItemDto[];
     model_version!: string;
-    interests!: string;
-    merits!: string;
+}
+
+export class FastApiResponseItemDto {
+    id!: number;
+    name!: string;
+    description!: string;
+    total_score!: number;
     goals!: string;
-    module_order!: number[];
+    matching_keywords!: string[];
 }
