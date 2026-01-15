@@ -14,15 +14,17 @@ export class FastApiClientService {
     private fastapiUrl: string;
 
     constructor() {
-        this.fastapiUrl = process.env.FASTAPI_URL || '';
-        if (!this.fastapiUrl) {
+        const envUrl = process.env.FASTAPI_URL?.trim();
+        if (!envUrl) {
             new LoggingHandler(this.logger, {
-                level: 'warn',
+                level: 'error',
                 codeLocation: 'constructor',
                 message: "FASTAPI_URL environment variable is not set"
             }).send();
+            throw new InternalServerErrorException('FASTAPI_URL environment variable is not set');
         }
-        this.fastapiUrl = `${this.fastapiUrl}/recommendations`
+        const baseUrl = envUrl.replace(/\/+$/, '');
+        this.fastapiUrl = `${baseUrl}/recommendations`;
     }
 
     /**
