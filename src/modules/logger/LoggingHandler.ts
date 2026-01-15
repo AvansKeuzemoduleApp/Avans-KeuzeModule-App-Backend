@@ -11,26 +11,27 @@ export class LoggingHandler {
         this.data = data;
         this.data.timestamp = new Date();
         this.logId = randomUUID();
-        this.sendLog(true);
+        this.sendLog("init");
     }
 
-    public Get(): LoggerObject {
+    public get(): LoggerObject {
         return this.data;
     }
 
-    public Set(data: LoggerObject): LoggingHandler {
+    public set(data: LoggerObject): LoggingHandler {
         this.data = data;
         this.data.timestamp = new Date();
+        this.sendLog("midway-replacement");
         return this;
     }
 
-    public Update<K extends keyof LoggerObject>(key: K, value: LoggerObject[K]): LoggingHandler {
+    public update<K extends keyof LoggerObject>(key: K, value: LoggerObject[K]): LoggingHandler {
         this.data[key] = value;
         this.data.timestamp = new Date();
         return this;
     }
 
-    public UpdateUser<K extends keyof LoggerUserData>(key: K, value: LoggerUserData[K]): LoggingHandler {
+    public updateUser<K extends keyof LoggerUserData>(key: K, value: LoggerUserData[K]): LoggingHandler {
         if (!this.data.userData) {
             this.data.userData = {};
         }
@@ -39,7 +40,7 @@ export class LoggingHandler {
         return this;
     }
 
-    public UpdateModule<K extends keyof LoggerModuleData>(key: K, value: LoggerModuleData[K]): LoggingHandler {
+    public updateModule<K extends keyof LoggerModuleData>(key: K, value: LoggerModuleData[K]): LoggingHandler {
         if (!this.data.moduleData) {
             this.data.moduleData = {};
         }
@@ -48,7 +49,7 @@ export class LoggingHandler {
         return this;
     }
 
-    public UpdateDebug<K extends keyof LoggerDebugData>(key: K, value: LoggerDebugData[K]): LoggingHandler {
+    public updateDebug<K extends keyof LoggerDebugData>(key: K, value: LoggerDebugData[K]): LoggingHandler {
         if (!this.data.debugObject) {
             this.data.debugObject = {};
         }
@@ -57,7 +58,7 @@ export class LoggingHandler {
         return this;
     }
 
-    private Mapper(): LoggerObjectMapped {
+    private mapper(): LoggerObjectMapped {
         let userData: LoggerUserDataMapped | null = null;
         let moduleData: LoggerModuleDataMapped | null = null;
         let debugObject: LoggerDebugDataMapped | null = null;
@@ -130,18 +131,14 @@ export class LoggingHandler {
         }
     }
 
-    public Send() {
-        this.sendLog(false)
+    public send() {
+        this.sendLog("closed")
     }
 
-    private sendLog(earlyHints: boolean) {
-        const converted = this.Mapper()
+    private sendLog(logStatus: "init" | "closed" | "midway-replacement") {
+        const converted = this.mapper()
         converted.logId = this.logId;
-        if (earlyHints) {
-            converted.logStatus = "init";
-        } else {
-            converted.logStatus = "closed";
-        }
+        converted.logStatus = logStatus;
         switch (this.data.level) {
             case 'warn':
                 this.logger.warn(converted);

@@ -33,12 +33,12 @@ export class ModuleService {
             codeLocation: 'validateNonEmptyString'
         })
         if (typeof value !== 'string' || value.trim().length === 0) {
-            log.UpdateDebug("value", value ?? undefined)
-                .UpdateDebug("fieldName", fieldName).Update("message", `Field "${fieldName}" must be a non-empty string.`).Send();
+            log.updateDebug("value", value ?? undefined)
+                .updateDebug("fieldName", fieldName).update("message", `Field "${fieldName}" must be a non-empty string.`).send();
             throw new BadRequestException(`Field "${fieldName}" must be a non-empty string.`);
         }
         // else {
-        //     log.Send();
+        //     log.send();
         // }
     }
 
@@ -57,7 +57,7 @@ export class ModuleService {
             level: 'debug',
             codeLocation: 'sanitizeCreateDto',
             moduleData: newDto
-        }).Send();
+        }).send();
         return newDto;
     }
 
@@ -92,7 +92,7 @@ export class ModuleService {
             level: 'debug',
             codeLocation: 'sanitizeUpdateDto',
             moduleData: out
-        }).Send();
+        }).send();
 
         return out;
     }
@@ -140,7 +140,7 @@ export class ModuleService {
             level: 'debug',
             codeLocation: 'create',
             moduleData: entity
-        }).Send();
+        }).send();
 
         return this.moduleRepo.save(entity);
     }
@@ -153,7 +153,7 @@ export class ModuleService {
             moduleData: ModuleLogMapper.CreateUpdateModule(dto, id)
         });
         if (!entity) {
-            log.Update("message", `Module with ID not found`).Send();
+            log.update("message", `Module with ID not found`).send();
             throw new NotFoundException(`Module with ID ${id} not found`)
         };
 
@@ -200,7 +200,7 @@ export class ModuleService {
         }
 
         Object.assign(entity, updates);
-        log.Update("message", "Module Updated").Send();
+        log.update("message", "Module Updated").send();
 
         return this.moduleRepo.save(entity);
     }
@@ -215,10 +215,10 @@ export class ModuleService {
         });
         const entity = await this.moduleRepo.findOne({ where: { id } });
         if (!entity) {
-            log.Update("message", `Module with ID not found`).Send()
+            log.update("message", `Module with ID not found`).send()
             throw new NotFoundException(`Module with ID ${id} not found`);
         }
-        log.Send();
+        log.send();
 
         await this.moduleRepo.remove(entity);
     }
@@ -343,7 +343,7 @@ export class ModuleService {
                 showFavourites: false,
             },
         };
-        log.Update("message", "returned modules successfully").Send();
+        log.update("message", "returned modules successfully").send();
         return responseObject;
     }
 
@@ -387,10 +387,10 @@ export class ModuleService {
             .getRawOne();
 
         if (!result) {
-            log.Update("message", `Module with ID not found`).Send()
+            log.update("message", `Module with ID not found`).send()
             throw new NotFoundException(`Module with ID ${id} not found`);
         }
-        log.Send();
+        log.send();
 
         return ModuleMapper.toDetailDto(result);
     }

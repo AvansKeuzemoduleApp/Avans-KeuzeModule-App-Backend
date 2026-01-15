@@ -33,7 +33,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                     httpResponse: status,
                     httpMethod: `${req?.method}`,
                     errorMessage: (exception as any)?.stack ?? String(exception)
-                }).Send()
+                }).send()
 
                 body = { ...body, message: 'Internal server error' };
 
@@ -48,7 +48,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                     errorMessage: (exception as any)?.stack ?? String(exception),
                     programmerNote: `It's a user mistake.`,
                     responseMessage: msg
-                }).Send()
+                }).send()
                 body = {
                     statusCode: status,
                     message: msg,
@@ -66,7 +66,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 httpResponse: status,
                 httpMethod: `${req?.method}`,
                 errorMessage: (exception as any)?.stack ?? String(exception)
-            }).Send()
+            }).send()
         }
 
         res.status(status).json(body);

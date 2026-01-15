@@ -50,7 +50,7 @@ export class ProfileService {
                     userId: userId
                 },
                 securityAlert: true
-            }).Send();
+            }).send();
 
             return profile;
         } catch (error: any) {
@@ -81,7 +81,7 @@ export class ProfileService {
             userData: {
                 userId: userId
             }
-        }).Send();
+        }).send();
 
         return {
             // id: profile.id,
@@ -119,7 +119,7 @@ export class ProfileService {
                 requestMerits: dto.merits ?? undefined
             },
             securityAlert: true
-        }).Send();
+        }).send();
         await this.studentProfileRepo.save(profile);
 
         const response = {

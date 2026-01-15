@@ -33,10 +33,10 @@ export class ModuleAdminController {
 
         try {
             const result = await this.moduleService.create(dto);
-            log.Update('httpResponse', 201).Send();
+            log.update('httpResponse', 201).send();
             return result;
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -57,10 +57,10 @@ export class ModuleAdminController {
 
         try {
             const result = await this.moduleService.update(id, dto);
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return result;
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -83,10 +83,10 @@ export class ModuleAdminController {
 
         try {
             const result = await this.moduleService.remove(id);
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return result;
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }

@@ -32,7 +32,7 @@ export interface LoggerObjectMapped {
     moduleData: LoggerModuleDataMapped | null;
     message: string | null;
     debugObject: LoggerDebugDataMapped | null;
-    logStatus?: "init" | "closed";
+    logStatus?: "init" | "closed" | "midway-replacement";
     logId?: string
 }
 
