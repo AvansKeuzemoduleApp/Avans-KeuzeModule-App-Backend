@@ -63,7 +63,7 @@ export class FastApiClientService {
         };
 
         try {
-            log.update("message", "Sending request to FastAPI")
+            log.update("message", "Sending request to FastAPI").sendPartial();
 
             const response = await fetch(this.fastapiUrl, {
                 method: 'POST',
