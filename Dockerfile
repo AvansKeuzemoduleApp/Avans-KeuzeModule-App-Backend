@@ -32,6 +32,9 @@ COPY --from=builder /app/dist ./dist
 # Expose the port the app runs on
 EXPOSE 3000
 
+# Run as existing sysadmin user
+USER sysadmin
+
 # Start the application
 CMD ["npm", "run", "start:prod"]
 
