@@ -127,7 +127,9 @@ export class LoggingHandler {
             securityAlert: this.data.securityAlert ?? false,
             moduleData: moduleData,
             message: this.data.message ?? null,
-            debugObject: debugObject
+            debugObject: debugObject,
+            logStatus: null,
+            logId: this.logId
         }
     }
 
@@ -137,7 +139,6 @@ export class LoggingHandler {
 
     private sendLog(logStatus: "init" | "closed" | "midway-replacement") {
         const converted = this.mapper()
-        converted.logId = this.logId;
         converted.logStatus = logStatus;
         switch (this.data.level) {
             case 'warn':
