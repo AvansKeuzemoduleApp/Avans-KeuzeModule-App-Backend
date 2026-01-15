@@ -58,7 +58,7 @@ export class LoggingHandler {
         return this;
     }
 
-    private mapper(): LoggerObjectMapped {
+    private mapper(logStatus: "init" | "closed" | "midway-replacement"): LoggerObjectMapped {
         let userData: LoggerUserDataMapped | null = null;
         let moduleData: LoggerModuleDataMapped | null = null;
         let debugObject: LoggerDebugDataMapped | null = null;
@@ -128,7 +128,7 @@ export class LoggingHandler {
             moduleData: moduleData,
             message: this.data.message ?? null,
             debugObject: debugObject,
-            logStatus: null,
+            logStatus: logStatus,
             logId: this.logId
         }
     }
@@ -138,8 +138,7 @@ export class LoggingHandler {
     }
 
     private sendLog(logStatus: "init" | "closed" | "midway-replacement") {
-        const converted = this.mapper()
-        converted.logStatus = logStatus;
+        const converted = this.mapper(logStatus)
         switch (this.data.level) {
             case 'warn':
                 this.logger.warn(converted);
