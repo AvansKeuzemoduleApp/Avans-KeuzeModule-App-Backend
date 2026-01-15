@@ -9,19 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-        ports:
-          - 3306:3306
 
     steps:
       - uses: actions/checkout@v4
@@ -36,18 +23,18 @@ jobs:
       - name: Run all tests with coverage
         run: npm run test:cov
         env:
-          DB_HOST: localhost
-          DB_PORT: 3306
-          DB_USER: test_user
-          DB_PASSWORD: test_password_123
-          DB_NAME: test_keuzekompas_db
-          BCRYPT_ROUNDS: 10
-          DUMMY_HASH: $2b$10$abcdefghijklmnopqrstuvwxyz1234567890123456789012
-          COOKIE_SECURE: 'false'
-          COOKIE_SAMESITE: lax
-          AUTH_COOKIE_ACCESS: test_access_token
-          AUTH_COOKIE_REFRESH: test_refresh_token
-          ACCESS_TOKEN_EXPIRES_IN_SECONDS: 3600
-          REFRESH_TOKEN_EXPIRES_IN_SECONDS: 86400
-          JWT_SECRET: test_jwt_secret_for_ci_testing_only_1234567890
-          CORS_ORIGINS: http://localhost:3000
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          BCRYPT_ROUNDS: ${{ secrets.BCRYPT_ROUNDS }}
+          DUMMY_HASH: ${{ secrets.DUMMY_HASH }}
+          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
+          COOKIE_SAMESITE: ${{ secrets.COOKIE_SAMESITE }}
+          AUTH_COOKIE_ACCESS: ${{ secrets.AUTH_COOKIE_ACCESS }}
+          AUTH_COOKIE_REFRESH: ${{ secrets.AUTH_COOKIE_REFRESH }}
+          ACCESS_TOKEN_EXPIRES_IN_SECONDS: ${{ secrets.ACCESS_TOKEN_EXPIRES_IN_SECONDS }}
+          REFRESH_TOKEN_EXPIRES_IN_SECONDS: ${{ secrets.REFRESH_TOKEN_EXPIRES_IN_SECONDS }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
