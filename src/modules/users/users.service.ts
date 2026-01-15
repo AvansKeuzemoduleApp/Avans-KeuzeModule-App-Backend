@@ -21,7 +21,7 @@ export class UsersService {
             userData: {
                 username: email
             }
-        }).Send();
+        }).send();
         return this.usersRepo.findOne({ where: { email } });
     }
 
@@ -32,7 +32,7 @@ export class UsersService {
             userData: {
                 userId: id
             }
-        }).Send();
+        }).send();
         return this.usersRepo.findOne({ where: { id } });
     }
 
@@ -43,7 +43,7 @@ export class UsersService {
             userData: {
                 userId: userId
             }
-        }).Send();
+        }).send();
         await this.usersRepo.increment({ id: userId }, 'tokenVersion', 1);
     }
 
@@ -62,13 +62,13 @@ export class UsersService {
                 tokenVersion: 0,
             });
             await this.usersRepo.insert(user);
-            log.Update("message", "added to DB").Send();
+            log.update("message", "added to DB").send();
             return user;
         }
 
 
         catch (e: any) {
-            log.Update("errorMessage", e).Update("level", "error").Send();
+            log.update("errorMessage", e).update("level", "error").send();
             if (e?.code === 'ER_DUP_ENTRY') {
                 return null;
             }

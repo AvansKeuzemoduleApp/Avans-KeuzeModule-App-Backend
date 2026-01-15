@@ -36,10 +36,10 @@ export class StudentFavouriteController {
 
         try {
             const result = await this.studentFavouriteService.addFavourite(userId, dto.moduleId);
-            log.Update('httpResponse', 201).Send();
+            log.update('httpResponse', 201).send();
             return result;
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }
@@ -69,10 +69,10 @@ export class StudentFavouriteController {
 
         try {
             await this.studentFavouriteService.removeFavourite(userId, moduleId);
-            log.Update('httpResponse', 200).Send();
+            log.update('httpResponse', 200).send();
             return { message: 'Favourite removed successfully' };
         } catch (e) {
-            log.Update('httpResponse', 500).Update('level', 'error').Update('errorMessage', e.message).Send();
+            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
     }

@@ -67,7 +67,7 @@ export class RecommendationService {
         }
 
         if (missingFields.length > 0) {
-            log.Update("message", `Profile incomplete. Please set the following fields before requesting recommendations: ${missingFields.join(', ')}.`).Send();
+            log.update("message", `Profile incomplete. Please set the following fields before requesting recommendations: ${missingFields.join(', ')}.`).send();
             throw new BadRequestException(
                 `Profile incomplete. Please set the following fields before requesting recommendations: ${missingFields.join(', ')}.`,
             );
@@ -134,8 +134,8 @@ export class RecommendationService {
         try {
             await this.recommendationOrderRepo.save(orders);
         } catch (error) {
-            log.Update("message", `Failed to save recommendations`)
-                .Update("errorMessage", error).Update("level", "error").Send();
+            log.update("message", `Failed to save recommendations`)
+                .update("errorMessage", error).update("level", "error").send();
             throw new BadRequestException('Failed to save recommendations');
         }
 
@@ -146,10 +146,10 @@ export class RecommendationService {
         });
 
         if (!savedCache) {
-            log.Update("message", `Failed to create recommendation cache`).Send();
+            log.update("message", `Failed to create recommendation cache`).send();
             throw new BadRequestException('Failed to create recommendation cache');
         }
-        log.Update("message", "returned modules successfully").Send();
+        log.update("message", "returned modules successfully").send();
 
         return await this.formatRecommendationResponse(savedCache, query, userId);
     }
@@ -256,7 +256,7 @@ export class RecommendationService {
             },
         };
 
-        log.Update("message", "returned modules successfully").Send();
+        log.update("message", "returned modules successfully").send();
 
         return responseObject;
     }
