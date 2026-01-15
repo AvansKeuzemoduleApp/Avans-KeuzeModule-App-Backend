@@ -26,4 +26,5 @@ export class RecommendedResponseItemDto {
     start_date: string;
     isFavourite: boolean;
     explanation: string;
+    matching_keywords: string[];
 }

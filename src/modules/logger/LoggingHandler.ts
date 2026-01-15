@@ -61,7 +61,7 @@ export class LoggingHandler {
         return this;
     }
 
-    private mapper(logStatus: "init" | "closed" | "midway-replacement"): LoggerObjectMapped {
+    private mapper(logStatus: "init" | "closed" | "midway-replacement" | "partial"): LoggerObjectMapped {
         let userData: LoggerUserDataMapped | null = null;
         let moduleData: LoggerModuleDataMapped | null = null;
         let debugObject: LoggerDebugDataMapped | null = null;
@@ -112,7 +112,9 @@ export class LoggingHandler {
                 fieldName: this.data.debugObject.fieldName ?? null,
                 filterData: filterData,
                 filterJson: this.data.debugObject.filterJson ?? null,
-                archiveFile: this.data.debugObject.archiveFile ?? null
+                archiveFile: this.data.debugObject.archiveFile ?? null,
+                FASTAPI_URL: this.data.debugObject.FASTAPI_URL ?? null,
+                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null
             }
         }
         return {
@@ -137,11 +139,20 @@ export class LoggingHandler {
         }
     }
 
+    /**
+     * Partial will have set the `logStatus` to "partial". Only use this if you want a log in between the "init" and "closed" status of a log.
+     * 
+     * Example usecase: you have to do an api request and want to show that the API request was completed.
+     */
+    public sendPartial() {
+        this.sendLog("partial");
+    }
+
     public send() {
         this.sendLog("closed");
     }
 
-    private sendLog(logStatus: "init" | "closed" | "midway-replacement") {
+    private sendLog(logStatus: "init" | "closed" | "midway-replacement" | "partial") {
         const converted = this.mapper(logStatus);
         switch (this.data.level) {
             case 'warn':

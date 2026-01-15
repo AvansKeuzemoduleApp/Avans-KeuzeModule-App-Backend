@@ -25,7 +25,7 @@ export class LoggerController {
         const userId = req.user?.sub;
         const log = new LoggingHandler(this.logger, {
             userData: userId ? { userId: userId } : undefined,
-            level: "warn",
+            level: "log",
             codeLocation: req.path,
             originalUrl: req.originalUrl,
             httpMethod: req.method,
