@@ -46,7 +46,8 @@ export class RecommendationService {
                 userId: userId
             },
             debugObject: {
-                filterData: ModuleLogMapper.QueryModule(query)
+                filterData: ModuleLogMapper.QueryModule(query),
+                PAGE_SIZE: PAGE_SIZE
             }
         });
         // Get student profile
@@ -93,11 +94,13 @@ export class RecommendationService {
         }
 
         // Call FastAPI to get recommendations
+        log.update("message", "calling the fastAPI").sendPartial()
         const response = await this.fastApiClient.getRecommendations(
             interests,
             merits,
             goals,
         );
+        log.update("message", "got a response from fastAPI").sendPartial()
 
         // Fetch modules by IDs, skipping any that don't exist
         const modules = await this.moduleRepo.find({

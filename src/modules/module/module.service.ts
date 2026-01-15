@@ -234,7 +234,8 @@ export class ModuleService {
                 userId: user
             },
             debugObject: {
-                filterData: ModuleLogMapper.QueryModule(query)
+                filterData: ModuleLogMapper.QueryModule(query),
+                PAGE_SIZE: PAGE_SIZE
             }
         });
         const queryBuilder = this.moduleRepo
