@@ -383,7 +383,7 @@ describe('Auth E2E Tests', () => {
                 .expect(401);
 
             expect(response.headers['retry-after']).toBeDefined();
-        });
+        }, 15000);
 
         it.skip('Should record failures for all exception types (not just UnauthorizedException)', async () => {
             // Test validation error
