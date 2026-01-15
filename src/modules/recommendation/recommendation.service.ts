@@ -6,7 +6,6 @@ import { RecommendationCache } from './recommendation-cache.entity';
 import { RecommendationOrder } from './recommendation-order.entity';
 import { ProfileService } from '../profile/profile.service';
 import { RecommendationResponseDto, RecommendedResponseItemDto } from './dto/recommendation-response.dto';
-import { templateResponse } from './dto/template-fastapi-response';
 import { defaultModuleFilters } from '../module/data/module-filters';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
 import { StudentFavourite } from '../student-favourite/student-favourite.entity';
@@ -102,10 +101,21 @@ export class RecommendationService {
         );
         log.update("message", "got a response from fastAPI").sendPartial()
 
+        // Extract module IDs from the response
+        const recommendedModuleIds = Array.isArray(response.modules)
+            ? response.modules.map((m) => m.id).filter(id => id != null)
+            : [];
+
+        // If no modules were recommended, return empty result
+        if (recommendedModuleIds.length === 0) {
+            log.update("message", "No modules recommended by FastAPI").update("level", "warn").send();
+            throw new BadRequestException('No modules were recommended');
+        }
+
         // Fetch modules by IDs, skipping any that don't exist
         const modules = await this.moduleRepo.find({
             where: {
-                id: In(response.module_order),
+                id: In(recommendedModuleIds),
             },
         });
 
@@ -113,7 +123,7 @@ export class RecommendationService {
         const moduleMap = new Map(modules.map((m) => [m.id, m]));
 
         // Filter to only existing modules in the correct order
-        const validModuleIds = response.module_order.filter((id) => moduleMap.has(id));
+        const validModuleIds = recommendedModuleIds.filter((id) => moduleMap.has(id));
 
         // Calculate expiration date
         const cacheHours = parseInt(process.env.RECOMMENDATION_CACHE_HOURS || '24', 10);
