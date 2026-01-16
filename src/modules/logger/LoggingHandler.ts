@@ -115,7 +115,9 @@ export class LoggingHandler {
                 filterJson: this.data.debugObject.filterJson ?? null,
                 archiveFile: this.data.debugObject.archiveFile ?? null,
                 FASTAPI_URL: this.data.debugObject.FASTAPI_URL ?? null,
-                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null
+                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null,
+                response: this.data.debugObject.response ?? null,
+                body: this.data.debugObject.body ?? null
             }
         }
         return {
