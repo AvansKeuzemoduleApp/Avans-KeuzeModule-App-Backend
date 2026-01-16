@@ -41,7 +41,6 @@ export class ModuleController {
         }
     }
 
-    @Public()
     @Get(':id')
     async findOne(
         @Param('id', ParseIntPipe) id: number,
