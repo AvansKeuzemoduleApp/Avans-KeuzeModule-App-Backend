@@ -1,6 +1,7 @@
 import { Logger } from "@nestjs/common";
 import { LoggerDebugData, LoggerDebugDataMapped, LoggerModuleData, LoggerModuleDataMapped, LoggerModuleFilterMapped, LoggerObject, LoggerObjectMapped, LoggerUserData, LoggerUserDataMapped } from "./dto/logger-object.dto";
 import { randomUUID } from 'crypto';
+import { VERSION } from "../../appVersion";
 
 export class LoggingHandler {
     logger: Logger;
@@ -114,7 +115,8 @@ export class LoggingHandler {
                 filterJson: this.data.debugObject.filterJson ?? null,
                 archiveFile: this.data.debugObject.archiveFile ?? null,
                 FASTAPI_URL: this.data.debugObject.FASTAPI_URL ?? null,
-                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null
+                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null,
+                VERSION: VERSION
             }
         }
         return {
