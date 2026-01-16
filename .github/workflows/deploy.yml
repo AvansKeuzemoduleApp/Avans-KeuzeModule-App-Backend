@@ -87,8 +87,13 @@ jobs:
             docker-compose pull
             docker-compose down || true
             docker-compose up -d --remove-orphans
-            sleep 3
+            sleep 5
             docker-compose ps
+            echo "Running healthcheck..."
+            if ! curl -f http://localhost:3000/api; then
+              echo "Healthcheck failed"
+              exit 1
+            fi
 
       - name: Deploy to VPS via SSH (no passphrase)
         if: ${{ env.SSH_PASSPHRASE == '' }}
@@ -104,5 +109,37 @@ jobs:
             docker-compose pull
             docker-compose down || true
             docker-compose up -d --remove-orphans
-            sleep 3
+            sleep 5
             docker-compose ps
+            echo "Running healthcheck..."
+            if ! curl -f http://localhost:3000/api; then
+              echo "Healthcheck failed"
+              exit 1
+            fi
+
+      - name: Rollback if failed
+        if: failure()
+        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            echo "Rollback to stable version..."
+            cd /home/sysadmin/${{ github.event.repository.name }}
+            docker-compose down || true
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable \
+                       ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:latest
+            docker-compose up -d --remove-orphans
+            sleep 5
+            docker-compose ps
+
+      - name: Tag current version as stable
+        if: success()
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:${{ github.sha }}
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:${{ github.sha }} \
+                     ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable
