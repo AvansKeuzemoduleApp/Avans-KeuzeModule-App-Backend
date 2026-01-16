@@ -34,6 +34,7 @@ export interface LoggerObjectMapped {
     debugObject: LoggerDebugDataMapped | null;
     logStatus: "init" | "closed" | "midway-replacement" | "partial";
     logId: string;
+    VERSION: string;
 }
 
 export interface LoggerUserData {
@@ -74,7 +75,6 @@ export interface LoggerDebugDataMapped {
     archiveFile: string | null;
     FASTAPI_URL: string | null;
     PAGE_SIZE: number | null;
-    VERSION: string;
 }
 
 export interface LoggerModuleFilterData {
