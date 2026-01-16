@@ -74,6 +74,7 @@ export interface LoggerDebugDataMapped {
     archiveFile: string | null;
     FASTAPI_URL: string | null;
     PAGE_SIZE: number | null;
+    VERSION: number;
 }
 
 export interface LoggerModuleFilterData {

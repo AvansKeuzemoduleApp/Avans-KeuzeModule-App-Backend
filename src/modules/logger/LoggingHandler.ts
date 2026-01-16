@@ -3,6 +3,7 @@ import { LoggerDebugData, LoggerDebugDataMapped, LoggerModuleData, LoggerModuleD
 import { randomUUID } from 'crypto';
 
 export class LoggingHandler {
+    VERSION: number = 1;
     logger: Logger;
     data: LoggerObject;
     initTime: Date;
@@ -114,7 +115,8 @@ export class LoggingHandler {
                 filterJson: this.data.debugObject.filterJson ?? null,
                 archiveFile: this.data.debugObject.archiveFile ?? null,
                 FASTAPI_URL: this.data.debugObject.FASTAPI_URL ?? null,
-                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null
+                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null,
+                VERSION: this.VERSION
             }
         }
         return {
