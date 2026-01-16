@@ -63,15 +63,22 @@ export class FastApiClientService {
         };
 
         try {
-            log.update("message", "Sending request to FastAPI").sendPartial();
-
-            const response = await fetch(this.fastapiUrl, {
+            const body = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(requestBody),
-            });
+            }
+            log.updateDebug("body", body).update("message", "Sending request to FastAPI").sendPartial();
+            const response = await fetch(this.fastapiUrl, body);
+            try {
+                log.updateDebug("response", response).update("message", "Gotten A response from FastAPI").sendPartial();
+            } catch (e) {
+                log.update("errorMessage", e)
+                    .update("level", "error")
+                    .update("programmerNote", "failed to interact with response object?").send();
+            }
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -89,7 +96,7 @@ export class FastApiClientService {
 
             return data;
         } catch (error) {
-            log.update("errorMessage", error)
+            log.update("errorMessage", JSON.stringify(error))
                 .update("programmerNote", "Error calling FastAPI")
                 .update("level", "error").send();
             if (error instanceof InternalServerErrorException) {
