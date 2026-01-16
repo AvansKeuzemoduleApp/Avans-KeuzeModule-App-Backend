@@ -355,17 +355,14 @@ export class ModuleService {
         const log = new LoggingHandler(this.logger, {
             level: 'debug',
             codeLocation: 'findOne',
-            moduleData: {
-                moduleId: id
-            },
-            userData: {
-                userId: user
-            }
+            moduleData: { moduleId: id },
+            userData: { userId: user }
         });
+
         const queryBuilder = this.moduleRepo
             .createQueryBuilder('module')
-            .select('module');
-        // Add isFavourite flag and join student_favourites only when userId is provided
+            .select('module')
+            .where('module.id = :id', { id });
 
         if (user) {
             queryBuilder
@@ -383,16 +380,14 @@ export class ModuleService {
             queryBuilder.addSelect('false', 'isFavourite');
         }
 
-        const result = await queryBuilder
-            .where('module.id = :id', { id })
-            .getRawOne();
+        const result = await queryBuilder.getRawOne();
 
         if (!result) {
-            log.update("message", `Module with ID not found`).send()
+            log.update("message", `Module with ID not found`).send();
             throw new NotFoundException(`Module with ID ${id} not found`);
         }
-        log.send();
 
+        log.send();
         return ModuleMapper.toDetailDto(result);
     }
 }
