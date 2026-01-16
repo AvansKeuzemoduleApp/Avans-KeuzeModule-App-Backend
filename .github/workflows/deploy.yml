@@ -87,13 +87,32 @@ jobs:
             docker-compose pull
             docker-compose down || true
             docker-compose up -d --remove-orphans
-            sleep 5
-            docker-compose ps
-            echo "Running healthcheck..."
-            if ! curl -f http://localhost:3000/api; then
-              echo "Healthcheck failed"
+
+            echo "Waiting for backend to become healthy..."
+            for i in {1..12}; do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' avans-keuzemodule-backend)
+              echo "Current status: $STATUS"
+              if [ "$STATUS" = "healthy" ]; then
+                break
+              fi
+              sleep 5
+            done
+
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' avans-keuzemodule-backend)
+            if [ "$STATUS" != "healthy" ]; then
+              echo "Backend never became healthy, rolling back..."
+              docker-compose down || true
+              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable
+              docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable \
+                         ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:latest
+              docker-compose up -d --remove-orphans
+              sleep 5
+              docker-compose ps
               exit 1
             fi
+
+            echo "Backend is healthy!"
+            docker-compose ps
 
       - name: Deploy to VPS via SSH (no passphrase)
         if: ${{ env.SSH_PASSPHRASE == '' }}
@@ -109,31 +128,31 @@ jobs:
             docker-compose pull
             docker-compose down || true
             docker-compose up -d --remove-orphans
-            sleep 5
-            docker-compose ps
-            echo "Running healthcheck..."
-            if ! curl -f http://localhost:3000/api; then
-              echo "Healthcheck failed"
+
+            echo "Waiting for backend to become healthy..."
+            for i in {1..12}; do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' avans-keuzemodule-backend)
+              echo "Current status: $STATUS"
+              if [ "$STATUS" = "healthy" ]; then
+                break
+              fi
+              sleep 5
+            done
+
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' avans-keuzemodule-backend)
+            if [ "$STATUS" != "healthy" ]; then
+              echo "Backend never became healthy, rolling back..."
+              docker-compose down || true
+              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable
+              docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable \
+                         ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:latest
+              docker-compose up -d --remove-orphans
+              sleep 5
+              docker-compose ps
               exit 1
             fi
 
-      - name: Rollback if failed
-        if: failure()
-        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_SSH_PORT }}
-          script: |
-            echo "Rollback to stable version..."
-            cd /home/sysadmin/${{ github.event.repository.name }}
-            docker-compose down || true
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable
-            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:stable \
-                       ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:latest
-            docker-compose up -d --remove-orphans
-            sleep 5
+            echo "Backend is healthy!"
             docker-compose ps
 
       - name: Tag current version as stable
