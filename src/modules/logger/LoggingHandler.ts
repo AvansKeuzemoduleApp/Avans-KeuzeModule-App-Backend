@@ -115,8 +115,7 @@ export class LoggingHandler {
                 filterJson: this.data.debugObject.filterJson ?? null,
                 archiveFile: this.data.debugObject.archiveFile ?? null,
                 FASTAPI_URL: this.data.debugObject.FASTAPI_URL ?? null,
-                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null,
-                VERSION: VERSION
+                PAGE_SIZE: this.data.debugObject.PAGE_SIZE ?? null
             }
         }
         return {
@@ -137,7 +136,8 @@ export class LoggingHandler {
             logStatus: logStatus,
             logId: this.logId,
             initTimestamp: this.initTime,
-            lastChangeTimestamp: this.updatedTime
+            lastChangeTimestamp: this.updatedTime,
+            VERSION: VERSION
         }
     }
 
