@@ -1,5 +1,6 @@
 import { Controller, Get, Logger, Req } from '@nestjs/common';
 import { LoggingHandler } from './modules/logger/LoggingHandler';
+import { Public } from './modules/auth/guards/public.decorator';
 
 type RequestWithUser = Request & { user?: any; method: string; originalUrl: string; path: string };
 
@@ -11,6 +12,7 @@ export class AppController {
      * Basic health endpoint.
      * With global prefix `api`, this responds on GET /api with HTTP 200.
      */
+    @Public()
     @Get()
     health(@Req() req: RequestWithUser) {
         const log = new LoggingHandler(this.logger, {
