@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Query, Req, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Logger, Query, Req, UnauthorizedException } from '@nestjs/common';
 import { RecommendationService } from './recommendation.service';
 import { RecommendationResponseDto } from './dto/recommendation-response.dto';
 import { QueryRecommendationsDto } from './dto/query-recomendations.dto';
@@ -32,7 +32,10 @@ export class RecommendationController {
             log.update('httpResponse', 200).send();
             return result;
         } catch (e) {
-            log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
+            // Only log if not a BadRequestException
+            if (!(e instanceof BadRequestException)) {
+                log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
+            }
             throw e;
         }
     }
