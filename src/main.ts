@@ -34,5 +34,6 @@ async function bootstrap() {
     );
 
     await app.listen(process.env.PORT ?? 3000);
+    console.log(`AVANS KEUZEMODULE BACKEND has started.\nListening on http://127.0.0.1:${process.env.PORT ?? 3000}...`)
 }
 bootstrap();
