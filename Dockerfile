@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22 AS builder
 
 WORKDIR /app
 
@@ -16,10 +16,10 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:22
 
-# Install curl for healthchecks
-RUN apk add --no-cache curl
+# Update system packages and install curl for healthchecks
+RUN apt-get update && apt-get upgrade -y && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
