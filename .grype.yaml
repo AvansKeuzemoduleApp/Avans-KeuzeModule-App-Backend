@@ -1,0 +1,4 @@
+# Grype configuration - ignore known "won't fix" Alpine vulnerabilities
+ignore:
+  - vulnerability: CVE-2026-***184 # zlib - Alpine won't fix
+    reason: "Alpine Linux has decided not to fix this vulnerability, so it's a 'won't fix'."
