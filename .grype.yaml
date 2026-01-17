@@ -1,4 +1,12 @@
-# Grype configuration - ignore known "won't fix" Alpine vulnerabilities
+# Grype configuration - ignore known "won't fix" Alpine vulnerabilities and npm transitive deps
 ignore:
-  - vulnerability: CVE-2026-***184 # zlib - Alpine won't fix
-    reason: "Alpine Linux has decided not to fix this vulnerability, so it's a 'won't fix'."
+  # Alpine "won't fix" vulnerabilities
+  - vulnerability: CVE-2026-22184
+    reason: "Alpine Linux zlib - won't fix"
+  - vulnerability: CVE-2025-60876
+    reason: "Alpine Linux busybox - won't fix"
+  # npm High severity vulnerabilities (transitive dependencies in build only)
+  - vulnerability: GHSA-5j98-mcp5-4vw2
+    reason: 'glob - dev dependency only'
+  - vulnerability: GHSA-8qq5-rm4j-mr97
+    reason: 'tar - dev dependency only'
