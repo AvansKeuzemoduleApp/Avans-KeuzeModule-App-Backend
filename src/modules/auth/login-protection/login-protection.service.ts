@@ -11,12 +11,12 @@ export class LoginProtectionService {
     private readonly windowMs = 15 * 60 * 1000;
     private readonly lockAfterFails = 10;
 
-    makeKey(ip: string): string {
-        return `login_${ip}`;
+    makeKey(ip: string, scope: string = 'login'): string {
+        return `${scope}_${ip}`;
     }
 
-    check(ip: string): { key: string; backoffMs: number } {
-        const key = this.makeKey(ip);
+    check(ip: string, scope: string = 'login'): { key: string; backoffMs: number } {
+        const key = this.makeKey(ip, scope);
         const backoffMs = this.getBackoff(key);
         return { key, backoffMs };
     }

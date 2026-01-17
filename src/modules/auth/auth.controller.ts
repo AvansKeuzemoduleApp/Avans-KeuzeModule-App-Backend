@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Res, Req, Get, UnauthorizedException, Logger } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res, Req, Get, UnauthorizedException, Logger, TooManyRequestsException } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -32,7 +32,14 @@ export class AuthController {
     @Throttle({ default: { limit: 5, ttl: 60 } })
     @Post('register')
     @HttpCode(200)
-    async register(@Body() dto: RegisterDto, @Req() req: RequestWithCookies) {
+    async register(
+        @Body() dto: RegisterDto,
+        @Req() req: RequestWithCookies,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const ip = this.getClientIp(req);
+        const { key, backoffMs } = this.loginProtection.check(ip, 'register');
+
         const log = new LoggingHandler(this.logger, {
             userData: { username: dto.email },
             level: "log",
@@ -42,11 +49,22 @@ export class AuthController {
             securityAlert: true
         });
 
+        if (backoffMs > 0) {
+            res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
+            log.update('httpResponse', 429)
+                .update('level', 'warn')
+                .update('errorMessage', 'Too many registration attempts')
+                .send();
+            throw new TooManyRequestsException('Too many registration attempts. Please try again later.');
+        }
+
         try {
             await this.authService.register(dto);
+            this.loginProtection.recordFailure(key);
             log.update('httpResponse', 200).send();
             return { message: 'If registration is possible, the account will be created.' };
         } catch (e) {
+            this.loginProtection.recordFailure(key);
             log.update('httpResponse', 500).update('level', 'error').update('errorMessage', e.message).send();
             throw e;
         }
@@ -62,7 +80,7 @@ export class AuthController {
         @Res({ passthrough: true }) res: Response,
     ) {
         const ip = this.getClientIp(req);
-        const { key, backoffMs } = this.loginProtection.check(ip);
+        const { key, backoffMs } = this.loginProtection.check(ip, 'login');
 
         const log = new LoggingHandler(this.logger, {
             userData: { username: dto.email },
@@ -71,6 +89,14 @@ export class AuthController {
             originalUrl: req.originalUrl,
             httpMethod: req.method,
         });
+        if (backoffMs > 0) {
+            res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
+            log.update('httpResponse', 429)
+                .update('level', 'warn')
+                .update('errorMessage', 'Too many login attempts')
+                .send();
+            throw new TooManyRequestsException('Too many login attempts. Please try again later.');
+        }
         try {
             const { accessToken, refreshToken } = await this.authService.login(dto);
             this.loginProtection.recordSuccess(key);
@@ -102,10 +128,10 @@ export class AuthController {
         } catch (e) {
             this.loginProtection.recordFailure(key);
 
-            const backoffMs = this.loginProtection.getBackoff(key);
+            const nextBackoffMs = this.loginProtection.getBackoff(key);
 
-            if (backoffMs > 0) {
-                res.set('Retry-After', Math.ceil(backoffMs / 1000).toString());
+            if (nextBackoffMs > 0) {
+                res.set('Retry-After', Math.ceil(nextBackoffMs / 1000).toString());
             }
             log.update('httpResponse', 401).update('level', 'warn').update('errorMessage', e.message).send();
             throw e;
