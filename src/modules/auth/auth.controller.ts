@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Res, Req, Get, UnauthorizedException, Logger, TooManyRequestsException } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res, Req, Get, UnauthorizedException, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -55,7 +55,7 @@ export class AuthController {
                 .update('level', 'warn')
                 .update('errorMessage', 'Too many registration attempts')
                 .send();
-            throw new TooManyRequestsException('Too many registration attempts. Please try again later.');
+            throw new HttpException('Too many registration attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
         }
 
         try {
@@ -95,7 +95,7 @@ export class AuthController {
                 .update('level', 'warn')
                 .update('errorMessage', 'Too many login attempts')
                 .send();
-            throw new TooManyRequestsException('Too many login attempts. Please try again later.');
+            throw new HttpException('Too many login attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
         }
         try {
             const { accessToken, refreshToken } = await this.authService.login(dto);
