@@ -33,7 +33,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 
 # Create sysadmin user (use available UID)
-RUN addgroup sysadmin && adduser -D -u 1001 -G sysadmin sysadmin && \
+RUN groupadd sysadmin && useradd -u 1001 -g sysadmin -s /usr/sbin/nologin -m sysadmin && \
     chown -R sysadmin:sysadmin /app
 
 # Expose the port the app runs on   
