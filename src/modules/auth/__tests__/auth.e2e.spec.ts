@@ -20,6 +20,12 @@ describe('Auth E2E Tests', () => {
 
     // Cache test users to avoid redundant registrations
     const testUsers: { [key: string]: { email: string; password: string } } = {};
+    let ipCounter = 10;
+
+    function nextTestIp(): string {
+        ipCounter += 1;
+        return `203.0.113.${ipCounter}`;
+    }
 
     // Mock all logger methods globally before any test setup
     beforeAll(async () => {
@@ -216,16 +222,18 @@ describe('Auth E2E Tests', () => {
 
         it('Should prevent brute force attacks with exponential backoff', async () => {
             const user = await getOrRegisterUser('brute-force', 'attacker@student.avans.nl', 'SecureP@ssw0rd!456');
+            const testIp = nextTestIp();
 
             // Attempt 11 failed logins
             for (let i = 0; i < 11; i++) {
                 const response = await request(app.getHttpServer())
                     .post('/auth/login')
+                    .set('X-Forwarded-For', testIp)
                     .send({
                         email: user.email,
                         password: 'WrongP@ssw0rd!123',
                     })
-                    .expect(401);
+                    .expect(i >= 10 ? 429 : 401);
 
                 // After 10 failures, should have Retry-After header
                 if (i >= 10) {
@@ -240,11 +248,13 @@ describe('Auth E2E Tests', () => {
 
         it('Should reset failure count on successful login', async () => {
             const user = await getOrRegisterUser('reset-test', 'resettest@student.avans.nl', 'SecureP@ssw0rd!789');
+            const testIp = nextTestIp();
 
             // Attempt 5 failed logins
             for (let i = 0; i < 5; i++) {
                 await request(app.getHttpServer())
                     .post('/auth/login')
+                    .set('X-Forwarded-For', testIp)
                     .send({ email: user.email, password: 'WrongP@ssw0rd!' })
                     .expect(401);
             }
@@ -252,12 +262,14 @@ describe('Auth E2E Tests', () => {
             // Now Login Successfully
             await request(app.getHttpServer())
                 .post('/auth/login')
+                .set('X-Forwarded-For', testIp)
                 .send(user)
                 .expect(200);
 
             // Attempt another failed login - Should start fresh counter
             const response = await request(app.getHttpServer())
                 .post('/auth/login')
+                .set('X-Forwarded-For', testIp)
                 .send({ email: user.email, password: 'WrongP@ssw0rd!' })
                 .expect(401);
 
@@ -338,9 +350,11 @@ describe('Auth E2E Tests', () => {
 
         it('Should set secure httpOnly cookies', async () => {
             const user = await getOrRegisterUser('cookies', 'cookies@student.avans.nl', 'SecureP@ssw0rd!000');
+            const testIp = nextTestIp();
 
             const response = await request(app.getHttpServer())
                 .post('/auth/login')
+                .set('X-Forwarded-For', testIp)
                 .send(user)
                 .expect(200);
 
@@ -372,7 +386,7 @@ describe('Auth E2E Tests', () => {
                         email: user.email,
                         password: 'WrongP@ssw0rd!',
                     })
-                    .expect(401);
+                    .expect(i >= 10 ? 429 : 401);
             }
 
             // 11th request should have Retry-After
@@ -380,7 +394,7 @@ describe('Auth E2E Tests', () => {
                 .post('/auth/login')
                 .set('X-Forwarded-For', '203.0.113.195, 70.41.3.18')
                 .send({ email: user.email, password: 'WrongP@ssw0rd!' })
-                .expect(401);
+                .expect(429);
 
             expect(response.headers['retry-after']).toBeDefined();
         }, 15000);

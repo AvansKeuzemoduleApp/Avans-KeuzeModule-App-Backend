@@ -1,13 +1,14 @@
 name: Build, Push, and Deploy via SSH (to portainer)
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ['Semgrep']
     types: [completed]
 
 jobs:
   build-and-deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
     env:
@@ -38,6 +39,28 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:${{ github.sha }}
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Generate SBOM
+        run: |
+          syft ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME_LOWER }}:latest -o json > sbom.json
+
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scan SBOM for vulnerabilities
+        run: |
+          grype sbom:sbom.json --fail-on critical
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
 
       - name: Show whether SSH_PASSPHRASE is present (masked)
         if: always()
