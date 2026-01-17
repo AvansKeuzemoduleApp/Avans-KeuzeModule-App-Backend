@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22 AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -16,10 +16,10 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:22
+FROM node:22-alpine
 
-# Update system packages and install curl for healthchecks
-RUN apt-get update && apt-get upgrade -y && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 WORKDIR /app
 
@@ -32,8 +32,8 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Create sysadmin user (use available UID)
-RUN groupadd sysadmin && useradd -u 1001 -g sysadmin -s /usr/sbin/nologin -m sysadmin && \
+# Create sysadmin user
+RUN addgroup sysadmin && adduser -D -u 1001 -G sysadmin sysadmin && \
     chown -R sysadmin:sysadmin /app
 
 # Expose the port the app runs on   
